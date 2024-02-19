@@ -398,7 +398,7 @@ static void setBind(int* keyBinds, int keycode)
 {
 	int i;
 
-	// Examina si existe anteriormente, si es asÌ, se desvincular· de la lista
+	// Examina si existe anteriormente, si es as√≠, se desvincular√° de la lista
 	// Examines whether it exists previously, if so, it will be unbind from the list
 	for (i = 0; i < KEYBINDS_MAX; i++) {
 		if (keyBinds[i] == keycode) {

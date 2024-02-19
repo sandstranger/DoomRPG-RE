@@ -299,7 +299,7 @@ void Hud_drawEffects(Hud_t* hud)
     }
 
     if (doomRpg->player->berserkerTics) {
-        // Bloqueo esta línea ya que la puse en otra función.
+        // Bloqueo esta lÃ­nea ya que la puse en otra funciÃ³n.
         // I block this line since I put it in another function.
         //{
         //    Render_setBerserkColor(doomRpg->render);
