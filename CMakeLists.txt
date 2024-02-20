@@ -18,7 +18,7 @@ set(VITA_APP_NAME "Doom RPG")
 set(VITA_TITLEID "DRPG00001")
 set(VITA_VERSION "01.00")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -fno-short-enums")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 file(GLOB_RECURSE HEADER_FILES "src/*.h")
