@@ -558,16 +558,16 @@ int SDL_GameControllerGetButtonID(void)
 }
 
 char buttonNames[][16] = {
-	"Gamepad A",
-	"Gamepad B",
-	"Gamepad X",
-	"Gamepad Y",
-	"Back",
+	"X",
+	"Circle",
+	"Square",
+	"Triangle",
+	"Select",
 	"Start",
 	"Left Stick",
 	"Right Stick",
-	"Left Bumper",
-	"Right Bumper",
+	"L",
+	"R",
 	"D-Pad Up",
 	"D-Pad Down",
 	"D-Pad Left",
