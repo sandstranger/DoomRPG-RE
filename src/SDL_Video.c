@@ -30,8 +30,6 @@ SDLVidModes_t sdlVideoModes[10] =
 
 void SDL_InitVideo(void)
 {
-	Uint32 flags;
-
 	SDL_memset(&sdlVideo, 0, sizeof(sdlVideo));
 	SDL_memset(&sdlController, 0, sizeof(sdlController));
 
@@ -49,12 +47,12 @@ void SDL_InitVideo(void)
         DoomRPG_Error("Could not initialize SDL: %s", SDL_GetError());
     }
 
-    flags = SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
-
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
+	SDL_setenv("VITA_DISABLE_TOUCH_FRONT", "1", 1);
+	SDL_setenv("VITA_DISABLE_TOUCH_BACK", "1", 1);
 
-	sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, flags);
+	sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN);
 
     if (!sdlVideo.window) {
 		DoomRPG_Error("Could not set %dx%d video mode: %s", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
