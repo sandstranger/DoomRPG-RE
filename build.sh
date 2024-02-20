@@ -17,6 +17,6 @@ while getopts 'rh' flag; do
     esac
 done
 
-rm -rf build
+rm -rf build/*
 cmake -S . -B build -DCMAKE_BUILD_TYPE=$build_type
 cmake --build build

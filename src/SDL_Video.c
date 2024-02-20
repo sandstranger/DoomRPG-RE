@@ -14,7 +14,7 @@ SDLVideo_t sdlVideo;
 SDLController_t sdlController;
 FluidSynth_t fluidSynth;
 
-SDLVidModes_t sdlVideoModes[14] =
+SDLVidModes_t sdlVideoModes[10] =
 {
 	{128, 128},
 	{128, 160},
@@ -22,30 +22,25 @@ SDLVidModes_t sdlVideoModes[14] =
 	{176, 208},
 	{176, 220},
 	{220, 176},
-	{240, 320},
 	{320, 200},
 	{320, 240},
-	{352, 416},
-	{416, 352},
-	{640, 360},
-	{640, 480},
-	{800, 600}
+	{360, 270},
+	{480, 272}
 };
 
 void SDL_InitVideo(void)
 {
 	Uint32 flags;
-	int video_w, video_h;
 
 	SDL_memset(&sdlVideo, 0, sizeof(sdlVideo));
 	SDL_memset(&sdlController, 0, sizeof(sdlController));
 
 	// Default
-	sdlVideo.fullScreen = false;
+	sdlVideo.fullScreen = true;
 	sdlVideo.vSync = false;
 	sdlVideo.integerScaling = true;
-	sdlVideo.resolutionIndex = 8;
-	sdlVideo.displaySoftKeys = true;
+	sdlVideo.resolutionIndex = 9;
+	sdlVideo.displaySoftKeys = false;
 
 	Game_loadConfig(NULL);
 
@@ -54,25 +49,15 @@ void SDL_InitVideo(void)
         DoomRPG_Error("Could not initialize SDL: %s", SDL_GetError());
     }
 
-    flags = SDL_WINDOW_OPENGL| SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
-    video_w = sdlVideoModes[sdlVideo.resolutionIndex].width;
-    video_h = sdlVideoModes[sdlVideo.resolutionIndex].height;
+    flags = SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 
-	if (sdlVideo.fullScreen) {
-		flags |= SDL_WINDOW_FULLSCREEN;
-	}
-
-	// Set the highdpi flags - this makes a big difference on Macs with
-	// retina displays, especially when using small window sizes.
-	flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-
-	sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);
+	sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, flags);
 
     if (!sdlVideo.window) {
-		DoomRPG_Error("Could not set %dx%d video mode: %s", video_w, video_h, SDL_GetError());
+		DoomRPG_Error("Could not set %dx%d video mode: %s", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
     }
 
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
@@ -87,10 +72,6 @@ void SDL_InitVideo(void)
 	sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
 	sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
 
-    // Since we are going to display a low resolution buffer,
-    // it is best to limit the window size so that it cannot
-    // be smaller than our internal buffer size.
-    SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
 

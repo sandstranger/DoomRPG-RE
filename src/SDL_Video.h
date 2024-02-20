@@ -1,6 +1,9 @@
 #ifndef SDL_VIDEO_H__
 #define SDL_VIDEO_H__
 
+#define SCREEN_WIDTH 960
+#define SCREEN_HEIGHT 544
+
 typedef struct SDLVideo_s
 {
 	SDL_Window* window;
@@ -57,7 +60,7 @@ typedef struct SDLVidModes_s
 	int width, height;
 } SDLVidModes_t;
 
-extern SDLVidModes_t sdlVideoModes[14];
+extern SDLVidModes_t sdlVideoModes[10];
 
 //Analog joystick dead zone
 #define JOYSTICK_DEAD_ZONE 8000

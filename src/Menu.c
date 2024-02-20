@@ -1946,9 +1946,6 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 			else if (itemId == 1) { // New Full Screen Option
 				sdlVideo.fullScreen ^= true;
 				strncpy(menuSystem->items[itemId].textField2, sdlVideo.fullScreen ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
-
-				SDL_ShowCursor(sdlVideo.fullScreen ? SDL_DISABLE : SDL_ENABLE);
-				SDL_SetWindowFullscreen(sdlVideo.window, sdlVideo.fullScreen ? SDL_WINDOW_FULLSCREEN : 0);
 			}
 			else if (itemId == 2) { // New vSync Option
 				sdlVideo.vSync ^= true;
