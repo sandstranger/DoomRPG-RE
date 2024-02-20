@@ -624,16 +624,16 @@ boolean Game_checkConfigVersion(Game_t* game)
 	worldFile = NULL;
 
 	rnt = false;
-	configFile = SDL_RWFromFile("Config", "r");
+	configFile = SDL_RWFromFile(DATAPATH "Config", "r");
 	if (configFile) {
-		playerFile = SDL_RWFromFile("Player", "r");
+		playerFile = SDL_RWFromFile(DATAPATH "Player", "r");
 		if (playerFile) {
-			player2File = SDL_RWFromFile("Player2", "r");
+			player2File = SDL_RWFromFile(DATAPATH "Player2", "r");
 			if (player2File) {
-				worldFile = SDL_RWFromFile("World", "r");
+				worldFile = SDL_RWFromFile(DATAPATH "World", "r");
 				if (worldFile) {
 
-					rw = SDL_RWFromFile("Config", "r");
+					rw = SDL_RWFromFile(DATAPATH "Config", "r");
 					SDL_RWread(rw, &version, sizeof(int), 1);
 					if (version == CONFIG_VERSION) {
 						rnt = true;
@@ -700,7 +700,7 @@ void Game_loadConfig(Game_t* game)
 	
 	printf("loadConfig\n");
 
-	rw = SDL_RWFromFile("Config", "r");
+	rw = SDL_RWFromFile(DATAPATH "Config", "r");
 	if (rw) {
 		SDL_RWread(rw, &version, sizeof(int), 1);
 		if (version == CONFIG_VERSION) {
@@ -1069,7 +1069,7 @@ void Game_loadState(Game_t* game, int i)
 	doomCanvas = game->doomRpg->doomCanvas;
 
 	//printf("load %s\event", (codeId == 1) ? "Player2" : "Player");
-	Game_loadPlayerState(game, (i == 1) ? "Player2" : "Player");
+	Game_loadPlayerState(game, (i == 1) ? DATAPATH "Player2" : DATAPATH "Player");
 
 	game->activeLoadType = i;
 	game->doomRpg->player->nextLevelXP = Player_calcLevelXP(game->doomRpg->player, game->doomRpg->player->level);
@@ -1105,7 +1105,7 @@ void Game_loadWorldState(Game_t* game)
 
 	//printf("loadWorldState\event");
 
-	rw = SDL_RWFromFile("World", "rb");
+	rw = SDL_RWFromFile(DATAPATH "World", "rb");
 	if (rw)
 	{
 		// Map Entities
@@ -1916,7 +1916,7 @@ void Game_saveConfig(Game_t* game, int num)
 	int version;
 	//printf("saveConfig %d\event", num);
 
-	rw = SDL_RWFromFile("Config", "w");
+	rw = SDL_RWFromFile(DATAPATH "Config", "w");
 
 	version = CONFIG_VERSION;
 	SDL_RWwrite(rw, &version, sizeof(int), 1);
@@ -2016,18 +2016,18 @@ void Game_saveState(Game_t* game, int mapId, int x, int y, int angleDir, boolean
 	DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
 	Game_saveConfig(game, z);
 	DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
-	Game_savePlayerState(game, "Player2", game->mapFiles[mapId-1], x, y, angleDir);
+	Game_savePlayerState(game, DATAPATH "Player2", game->mapFiles[mapId-1], x, y, angleDir);
 	DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
 	Game_saveWorldState(game);
 	if (!z) {
 		if (game->newMapName && SDL_strcmp(game->newMapName, "")) {
 			DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
-			Game_savePlayerState(game, "Player", game->newMapName, game->newDestX, game->newDestY, game->newAngle);
+			Game_savePlayerState(game, DATAPATH "Player", game->newMapName, game->newDestX, game->newDestY, game->newAngle);
 			game->newMapName[0] = '\0';
 		}
 		else {
 			DoomCanvas_updateLoadingBar(game->doomRpg->doomCanvas);
-			Game_savePlayerState(game, "Player", "/junction.bsp", 0, 0, 0);
+			Game_savePlayerState(game, DATAPATH "Player", "/junction.bsp", 0, 0, 0);
 		}
 	}
 }
@@ -2041,7 +2041,7 @@ void Game_saveWorldState(Game_t* game)
 	GameSprite_t* gSprite;
 	int i, j;
 
-	rw = SDL_RWFromFile("World", "wb");
+	rw = SDL_RWFromFile(DATAPATH "World", "wb");
 
 	// Map Entities
 	File_writeInt(rw, game->numEntities);

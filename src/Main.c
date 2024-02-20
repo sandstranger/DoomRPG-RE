@@ -25,7 +25,7 @@ int main(int argc, char* args[])
 	SDL_InitVideo();
 	SDL_InitAudio();
 
-	openZipFile("DoomRPG.zip", &zipFile);
+	openZipFile(DATAPATH "DoomRPG.zip", &zipFile);
 
 	/*int size;
 	byte* data;

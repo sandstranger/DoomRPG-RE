@@ -7,6 +7,8 @@ typedef enum { false, true } boolean;
 typedef unsigned char byte;
 #endif
 
+#define DATAPATH "ux0:data/doomrpg/"
+
 #define MAXCHAR ((char)0x7f)
 #define MAXSHORT ((short)0x7fff)
 #define MAXINT	((int)0x7fffffff)	// max pos 32-bit int 
