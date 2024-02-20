@@ -733,7 +733,7 @@ void DoomCanvas_drawCredits(DoomCanvas_t* doomCanvas)
 	if (doomCanvas->creditsTextTime == -1) {
 		len = SDL_strlen(creditsText);
 		doomCanvas->creditsText = SDL_malloc(len + 1);
-		strcpy_s(doomCanvas->creditsText, len + 1, creditsText);
+		strncpy(doomCanvas->creditsText, creditsText, len + 1);
 		doomCanvas->creditsTextTime = doomCanvas->time;
 
 		DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
@@ -1378,7 +1378,7 @@ void DoomCanvas_drawSoftKeys(DoomCanvas_t* doomCanvas, char* softKeyLeft, char* 
 		}
 		else {
 			if (doomCanvas->softKeyLeft != softKeyLeft) {
-				strcpy_s(doomCanvas->softKeyLeft, sizeof(doomCanvas->softKeyLeft), softKeyLeft);
+				strncpy(doomCanvas->softKeyLeft, softKeyLeft, sizeof(doomCanvas->softKeyLeft));
 			}
 
 			DoomRPG_setColor(doomCanvas->doomRpg, 0x313131);
@@ -1393,7 +1393,7 @@ void DoomCanvas_drawSoftKeys(DoomCanvas_t* doomCanvas, char* softKeyLeft, char* 
 		}
 		else {
 			if (doomCanvas->softKeyRight != softKeyRight) {
-				strcpy_s(doomCanvas->softKeyRight, sizeof(doomCanvas->softKeyRight), softKeyRight);
+				strncpy(doomCanvas->softKeyRight, softKeyRight, sizeof(doomCanvas->softKeyRight));
 			}
 			DoomRPG_setColor(doomCanvas->doomRpg, 0x313131);
 			x1 += (doomCanvas->clipRect.w - 52);
@@ -1840,7 +1840,7 @@ void DoomCanvas_handlePasswordEvents(DoomCanvas_t* doomCanvas, int i)
 			z = true;
 		}
 
-		strcpy_s(doomCanvas->strPassCode, sizeof(doomCanvas->strPassCode), doomCanvas->passCode);
+		strncpy(doomCanvas->strPassCode, doomCanvas->passCode, sizeof(doomCanvas->strPassCode));
 
 		for (j = len1; j < len2; j++) {
 			doomCanvas->strPassCode[j] = '_';
@@ -2147,8 +2147,8 @@ void DoomCanvas_loadEpilogueText(DoomCanvas_t* doomCanvas)
 	SDL_memset(rank, 0, sizeof(rank));
 
 	if (overall >= 80) {
-		strncpy_s(rank, sizeof(rank), "Master", sizeof(rank));
-		strncpy_s(doomCanvas->epilogueText[1], sizeof(*doomCanvas->epilogueText), 
+		strncpy(rank, "Master", sizeof(rank));
+		strncpy(doomCanvas->epilogueText[1], 
 			"You have found\n"
 			"every secret and\n"
 			"killed every mon-\n"
@@ -2161,8 +2161,8 @@ void DoomCanvas_loadEpilogueText(DoomCanvas_t* doomCanvas)
 			, sizeof(*doomCanvas->epilogueText));
 	}
 	else if (overall >= 70) {
-		strncpy_s(rank, sizeof(rank), "Baddy", sizeof(rank));
-		strncpy_s(doomCanvas->epilogueText[1], sizeof(*doomCanvas->epilogueText),
+		strncpy(rank, "Baddy", sizeof(rank));
+		strncpy(doomCanvas->epilogueText[1],
 			"Nice job. There\n"
 			"is only a little\n"
 			"more you need to\n"
@@ -2175,8 +2175,8 @@ void DoomCanvas_loadEpilogueText(DoomCanvas_t* doomCanvas)
 			, sizeof(*doomCanvas->epilogueText));
 	}
 	else if (overall >= 50) {
-		strncpy_s(rank, sizeof(rank), "Average", sizeof(rank));
-		strncpy_s(doomCanvas->epilogueText[1], sizeof(*doomCanvas->epilogueText),
+		strncpy(rank, "Average", sizeof(rank));
+		strncpy(doomCanvas->epilogueText[1],
 			"You've beaten the\n"
 			"demons from Hell,\n"
 			"but we've seen\n"
@@ -2187,8 +2187,8 @@ void DoomCanvas_loadEpilogueText(DoomCanvas_t* doomCanvas)
 			, sizeof(*doomCanvas->epilogueText));
 	}
 	else {
-		strncpy_s(rank, sizeof(rank), "Chump", sizeof(rank));
-		strncpy_s(doomCanvas->epilogueText[1], sizeof(*doomCanvas->epilogueText),
+		strncpy(rank, "Chump", sizeof(rank));
+		strncpy(doomCanvas->epilogueText[1],
 			"You've finished\n"
 			"the game, barely.\n"
 			"There's still much\n"
@@ -2233,15 +2233,15 @@ void DoomCanvas_loadPrologueText(DoomCanvas_t* doomCanvas)
 
 	textLen = SDL_strlen(storyTextA);
 	doomCanvas->storyText1[0] = SDL_malloc(textLen + 1);
-	strncpy_s(doomCanvas->storyText1[0], textLen + 1, storyTextA, textLen);
+	strncpy(doomCanvas->storyText1[0], storyTextA, textLen + 1);
 
 	textLen = SDL_strlen(storyTextB);
 	doomCanvas->storyText1[1] = SDL_malloc(textLen + 1);
-	strncpy_s(doomCanvas->storyText1[1], textLen + 1, storyTextB, textLen);
+	strncpy(doomCanvas->storyText1[1], storyTextB, textLen + 1);
 
 	textLen = SDL_strlen(storyTextC);
 	doomCanvas->storyText2 = SDL_malloc(textLen + 1);
-	strncpy_s(doomCanvas->storyText2, textLen + 1, storyTextC, textLen);
+	strncpy(doomCanvas->storyText2, storyTextC, textLen + 1);
 
 	DoomRPG_createImage(doomCanvas->doomRpg, "c.bmp", false, &doomCanvas->imgSpaceBG);
 	DoomRPG_createImage(doomCanvas->doomRpg, "d.bmp", true, &doomCanvas->imgLinesLayer);
@@ -2398,7 +2398,7 @@ void DoomCanvas_loadState(DoomCanvas_t* doomCanvas, int i, char* text)
 		doomCanvas->printMsg[0] = '\0';
 	}
 	else {
-		strncpy_s(doomCanvas->printMsg, sizeof(doomCanvas->printMsg), text, sizeof(doomCanvas->printMsg));
+		strncpy(doomCanvas->printMsg, text, sizeof(doomCanvas->printMsg));
 	}
 
 	DoomCanvas_setState(doomCanvas, ST_LOADING);
@@ -2622,7 +2622,7 @@ void DoomCanvas_prepareDialog(DoomCanvas_t* doomCanvas, char* str, boolean dialo
 	i = 0;
 	j = 0;
 	doomCanvas->numDialogLines = 0;
-	strcpy_s(doomCanvas->dialogBuffer, sizeof(doomCanvas->dialogBuffer), str);
+	strncpy(doomCanvas->dialogBuffer, str, sizeof(doomCanvas->dialogBuffer));
 
 	strLen = SDL_strlen(doomCanvas->dialogBuffer);
 	while (j < strLen) {
@@ -3036,7 +3036,7 @@ void DoomCanvas_run(DoomCanvas_t* doomCanvas)
 			doomCanvas->lastRenderTime = (doomCanvas->afterRender - beforeRender);
 			doomCanvas->afterRender = 0;
 		}
-		sprintf_s(doomCanvas->printMsg, sizeof(doomCanvas->printMsg), "%d: %d / %d", doomCanvas->state, doomCanvas->lastRenderTime, doomCanvas->lastLoopTime);
+		snprintf(doomCanvas->printMsg, sizeof(doomCanvas->printMsg), "%d: %d / %d", doomCanvas->state, doomCanvas->lastRenderTime, doomCanvas->lastLoopTime);
 		DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, 0, doomCanvas->doomRpg->hud->statusTopBarHeight, 0, -1);
 	}
 
@@ -3062,7 +3062,7 @@ void DoomCanvas_saveState(DoomCanvas_t* doomCanvas, int i, char* text)
 		doomCanvas->printMsg[0] = '\0';
 	}
 	else {
-		strncpy_s(doomCanvas->printMsg, sizeof(doomCanvas->printMsg), text, sizeof(doomCanvas->printMsg));
+		strncpy(doomCanvas->printMsg, text, sizeof(doomCanvas->printMsg));
 	}
 
 	DoomCanvas_setState(doomCanvas, ST_SAVING);
