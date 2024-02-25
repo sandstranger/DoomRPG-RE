@@ -1,6 +1,5 @@
 //Using SDL and standard IO
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <stdio.h>
 #include <zlib.h>
 
@@ -11,6 +10,7 @@
 #include "Hud.h"
 #include "MenuSystem.h"
 #include "SDL_Video.h"
+#include "Audio.h"
 #include "Z_Zip.h"
 
 extern DoomRPG_t* doomRpg;
@@ -23,7 +23,7 @@ int main(int argc, char* args[])
 
 	Z_Init();
 	SDL_InitVideo();
-	SDL_InitAudio();
+	Audio_init();
 
 	openZipFile(DATAPATH "DoomRPG.zip", &zipFile);
 
@@ -76,7 +76,7 @@ int main(int argc, char* args[])
 						SDL_Log("Window %d closed", ev.window.windowID);
 						closeZipFile(&zipFile);
 						DoomRPG_FreeAppData(doomRpg);
-						SDL_CloseAudio();
+						Audio_close();
 						SDL_Close();
 						exit(0);
 						break;
@@ -130,7 +130,7 @@ int main(int argc, char* args[])
 
 	closeZipFile(&zipFile);
 	DoomRPG_FreeAppData(doomRpg);
-	SDL_CloseAudio();
+	Audio_close();
 	SDL_Close();
 
 	return 0;

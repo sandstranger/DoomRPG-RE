@@ -840,15 +840,6 @@ void Menu_initMenu(Menu_t* menu, int i)
 			SDL_snprintf(text, sizeof(text), "%dK", (menu->doomRpg->render->mapMemory + 1023) / 1024);
 			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "Map:", text, 0, 0);
 
-			int iVar8 = 0;
-			int iVar3 = 0;
-			do {
-				iVar8 = menu->doomRpg->sound->soundChannel[iVar3].size + iVar8;
-			} while (++iVar3 < 10);
-
-			SDL_snprintf(text, sizeof(text), "%dK", (iVar8 + 1023) / 1024);
-			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "Sound:", text, 0, 0);
-
 			SDL_snprintf(text, sizeof(text), "%dK", (menu->doomRpg->imageMemory + 1023) / 1024);
 			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "Image:", text, 0, 0);
 			break;
@@ -2035,7 +2026,6 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 				else {
 					strncpy(menuSystem->items[itemId].textField2, "off", sizeof(menuSystem->items[itemId].textField2));
 					Sound_stopSounds(doomRpg->sound);
-					Sound_freeSounds(doomRpg->sound);
 					MenuItem_Set(&menuSystem->items[itemId + 1], NULL, 0, 0);
 					MenuItem_Set(&menuSystem->items[itemId + 2], NULL, 0, 0);
 				}

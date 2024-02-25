@@ -1,6 +1,5 @@
 
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -2298,7 +2297,6 @@ boolean DoomCanvas_loadMedia(DoomCanvas_t* doomCanvas)
 	doomCanvas->menuSystem->imgBG = NULL;
 	Render_freeRuntime(doomCanvas->render);
 	Game_unloadMapData(doomCanvas->game);
-	Sound_freeSounds(doomCanvas->doomRpg->sound);
 
 	if (Render_beginLoadMap(doomCanvas->render, doomCanvas->loadMapID))
 	{
@@ -2784,7 +2782,6 @@ void DoomCanvas_run(DoomCanvas_t* doomCanvas)
 	doomCanvas->oldState = doomCanvas->state;
 	DoomRPG_setRand(&doomCanvas->doomRpg->random);
 
-	doomCanvas->doomRpg->sound->nextplay = 0;
 	if (doomCanvas->doomRpg->graphSetCliping != 0) {
 		DoomRPG_setClipFalse(doomCanvas->doomRpg);
 	}

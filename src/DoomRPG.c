@@ -17,6 +17,7 @@
 #include "ParticleSystem.h"
 #include "Combat.h"
 #include "SDL_Video.h"
+#include "Audio.h"
 #include "Z_Zip.h"
 
 
@@ -33,7 +34,7 @@ keyMapping_t keyMappingDefault[12] = {
 	{AVK_MOVERIGHT,						{CONTROLLER_BUTTON_RIGHT_BUMPER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move right
 	{AVK_NEXTWEAPON,					{CONTROLLER_BUTTON_Y | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Next weapon
 	{AVK_PREVWEAPON,					{CONTROLLER_BUTTON_B | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Prev weapon
-	{AVK_SELECT | AVK_MENU_SELECT,		{CONTROLLER_BUTTON_A | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1.-1}}, // Attack/Talk/Use
+	{AVK_SELECT | AVK_MENU_SELECT,		{CONTROLLER_BUTTON_A | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Attack/Talk/Use
 	{AVK_PASSTURN,						{CONTROLLER_BUTTON_X | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Pass Turn
 	{AVK_AUTOMAP,						{CONTROLLER_BUTTON_BACK | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Automap
 	{AVK_MENUOPEN | AVK_MENU_OPEN,		{CONTROLLER_BUTTON_START | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}} // Open menu/back
@@ -81,7 +82,7 @@ void DoomRPG_Error(const char* fmt, ...) // 0x1C648
 	SDL_ShowMessageBox(&messageboxdata, NULL);
 	closeZipFile(&zipFile);
 	DoomRPG_FreeAppData(doomRpg);
-	SDL_CloseAudio();
+	Audio_close();
 	SDL_Close();
 	exit(0);
 
@@ -430,6 +431,7 @@ int DoomRPG_Init(void) // 0x3141C
 													if (Render_startup(doomRpg->render))
 													{
 														Game_loadConfig(doomRpg->game);
+														Sound_updateVolume(doomRpg->sound);
 
 														if (doomRpg->doomCanvas->skipIntro == false) {
 															DoomCanvas_setState(doomRpg->doomCanvas, ST_LEGALS);

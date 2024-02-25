@@ -26,21 +26,6 @@ void SDL_RenderDrawFillCircle(SDL_Renderer* renderer, int x, int y, int r);
 void SDL_RenderDrawCircle(SDL_Renderer* renderer, int x, int y, int r);
 
 //-----
-
-#include <fluidsynth.h>
-typedef struct FluidSynth_s
-{
-	fluid_settings_t* settings;
-	fluid_synth_t* synth;
-	fluid_audio_driver_t* adriver;
-} FluidSynth_t;
-
-extern FluidSynth_t fluidSynth;
-
-void SDL_InitAudio(void);
-void SDL_CloseAudio(void);
-
-//-----
 typedef struct SDLController_s
 {
 	//Game controller handler with force feedback
