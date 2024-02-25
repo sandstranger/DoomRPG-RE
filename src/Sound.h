@@ -29,7 +29,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg);
 void Sound_free(Sound_t* sound, boolean freePtr);
 void Sound_stopSounds(Sound_t* sound);
 void Sound_playSound(Sound_t* sound, int resourceID, byte flags, int priority);
-int Sound_getFromResourceID(resourceID);
+int Sound_getFromResourceID(int resourceID);
 void Sound_updateVolume(Sound_t* sound);
 int Sound_minusVolume(Sound_t* sound, int volume);
 int Sound_addVolume(Sound_t* sound, int volume);
