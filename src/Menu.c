@@ -993,7 +993,6 @@ void Menu_initMenu(Menu_t* menu, int i)
 			}
 
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Back", 0, 0);
-			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "FullScreen:", sdlVideo.fullScreen ? "on" : "off", 0, 0);
 			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "VSync:", sdlVideo.vSync ? "on" : "off", 0, 0);
 			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "IntScaling:", sdlVideo.integerScaling ? "on" : "off", 0, 0);
 			textDivider = MenuSystem_buildDivider(menuSystem, "Resolution");
@@ -1024,7 +1023,6 @@ void Menu_initMenu(Menu_t* menu, int i)
 
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Back", 0, 0);
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Bindings", 0, 0);
-			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Mouse", 0, 0);
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Controller", 0, 0);
 			break;
 		}
@@ -1052,12 +1050,8 @@ void Menu_initMenu(Menu_t* menu, int i)
 				SDL_snprintf(menuSystem->items[menuSystem->numItems].textField2,
 					sizeof(menuSystem->items[menuSystem->numItems].textField2), "%d%%", (menu->doomRpg->sound->volume * 100) / 100);
 				menuSystem->numItems++;
-
-				MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "Priority:",
-					menu->doomRpg->doomCanvas->sndPriority ? "on" : "off", 0, 0);
 			}
 			else {
-				MenuItem_Set(&menuSystem->items[menuSystem->numItems++], NULL, 0, 0);
 				MenuItem_Set(&menuSystem->items[menuSystem->numItems++], NULL, 0, 0);
 			}
 
@@ -1934,23 +1928,19 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 			if (itemId == 0) {
 				return menuSystem->oldMenu;
 			}
-			else if (itemId == 1) { // New Full Screen Option
-				sdlVideo.fullScreen ^= true;
-				strncpy(menuSystem->items[itemId].textField2, sdlVideo.fullScreen ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
-			}
-			else if (itemId == 2) { // New vSync Option
+			else if (itemId == 1) { // New vSync Option
 				sdlVideo.vSync ^= true;
 				strncpy(menuSystem->items[itemId].textField2, sdlVideo.vSync ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
 
 				SDL_SetHint(SDL_HINT_RENDER_VSYNC, sdlVideo.vSync ? "1" : "0");
 			}
-			else if (itemId == 3) { // New integer scaling Option
+			else if (itemId == 2) { // New integer scaling Option
 				sdlVideo.integerScaling ^= true;
 				strncpy(menuSystem->items[itemId].textField2, sdlVideo.integerScaling ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
 
 				SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
 			}
-			else if (itemId == 5) { // New resolution Option
+			else if (itemId == 4) { // New resolution Option
 				sdlVideo.resolutionIndex++;
 				if (sdlVideo.resolutionIndex >= (sizeof(sdlVideoModes) / sizeof(SDLVidModes_t))) {
 					sdlVideo.resolutionIndex = 0;
@@ -1958,11 +1948,11 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 				SDL_snprintf(text, sizeof(text), "(%dx%d)", sdlVideoModes[sdlVideo.resolutionIndex].width, sdlVideoModes[sdlVideo.resolutionIndex].height);
 				strncpy(menuSystem->items[itemId].textField, text, sizeof(menuSystem->items[itemId].textField));
 			}
-			else if (itemId == 7) { // New display SoftKeys Option
+			else if (itemId == 6) { // New display SoftKeys Option
 				sdlVideo.displaySoftKeys ^= true;
 				strncpy(menuSystem->items[itemId].textField2, sdlVideo.displaySoftKeys ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
 			}
-			else if (itemId == 8) { // New display SoftKeys Option
+			else if (itemId == 7) { // New display SoftKeys Option
 				menu->doomRpg->doomCanvas->renderFloorCeilingTextures ^= true;
 				strncpy(menuSystem->items[itemId].textField2, menu->doomRpg->doomCanvas->renderFloorCeilingTextures ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
 			}
@@ -1982,10 +1972,7 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 			else if (itemId == 1) { // Bindings
 				return (menuSystem->type == 1) ? MENU_INGAME_BINDINGS : MENU_BINDINGS;
 			}
-			else if (itemId == 2) { // Mouse
-				return (menuSystem->type == 1) ? MENU_INGAME_MOUSE : MENU_MOUSE;
-			}
-			else if (itemId == 3) { // Controller
+			else if (itemId == 2) { // Controller
 				return (menuSystem->type == 1) ? MENU_INGAME_CONTROLLER : MENU_CONTROLLER;
 			}
 
@@ -2018,16 +2005,11 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 
 					SDL_snprintf(menuSystem->items[itemId + 1].textField2,
 						sizeof(menuSystem->items[itemId + 1].textField2), "%d%%", (doomRpg->sound->volume * 100) / 100);
-
-
-					MenuItem_Set2(&menuSystem->items[itemId + 2], "Priority:", "", 0, 0);
-					strncpy(menuSystem->items[itemId + 2].textField2, menu->doomRpg->doomCanvas->sndPriority ? "on" : "off", sizeof(menuSystem->items[itemId + 2].textField2));
 				}
 				else {
 					strncpy(menuSystem->items[itemId].textField2, "off", sizeof(menuSystem->items[itemId].textField2));
 					Sound_stopSounds(doomRpg->sound);
 					MenuItem_Set(&menuSystem->items[itemId + 1], NULL, 0, 0);
-					MenuItem_Set(&menuSystem->items[itemId + 2], NULL, 0, 0);
 				}
 			}
 			else if (itemId == 2) {
@@ -2039,10 +2021,6 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 				else {
 					Sound_addVolume(menu->doomRpg->sound, 10);
 				}
-			}
-			else if (itemId == 3) {
-				menu->doomRpg->doomCanvas->sndPriority ^= true;
-				strncpy(menuSystem->items[itemId].textField2, menu->doomRpg->doomCanvas->sndPriority ? "on" : "off", sizeof(menuSystem->items[itemId].textField2));
 			}
 
 			return menuSystem->menu;

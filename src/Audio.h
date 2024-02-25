@@ -11,7 +11,7 @@ typedef struct FluidSynth_s
 
 typedef struct Audio_s
 {
-	void* soloud;
+  void* soloud;
   FluidSynth_t fluidSynth;
 } Audio_t;
 
