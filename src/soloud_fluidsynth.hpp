@@ -38,6 +38,6 @@ namespace SoLoud
     result loadFile(File* aFile);
     virtual AudioSourceInstance* createInstance();
   };
-};
+}
 
 #endif

@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "soloud_c.h"
+#include "soloud_c_ext.h"
 #include "soloud_c_fluidsynth.h"
 #include "fluidsynth/fluidsynth.h"
 #include "DoomRPG.h"
@@ -105,7 +106,7 @@ void Sound_free(Sound_t* sound, boolean freePtr)
 
 void Sound_stopSounds(Sound_t* sound)
 {
-	Soloud_stopAll(audio.soloud);
+	SoloudExt_stopAllNonProtected(audio.soloud);
 }
 
 void Sound_playSound(Sound_t* sound, int resourceID, byte flags, int priority)

@@ -4,7 +4,7 @@ FluidSynth module for SoLoud
 
 #include "fluidsynth/fluidsynth.h"
 #include "soloud_file.h"
-#include "soloud_fluidsynth.h"
+#include "soloud_fluidsynth.hpp"
 #include "Audio.h"
 
 namespace SoLoud
@@ -115,4 +115,4 @@ namespace SoLoud
     return new FluidSynthInstance(this);
   }
 
-};
+}

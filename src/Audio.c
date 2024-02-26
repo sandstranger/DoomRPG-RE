@@ -1,6 +1,7 @@
 #include <SDL.h>
 
 #include "soloud_c.h"
+#include "soloud_c_ext.h"
 #include "fluidsynth/fluidsynth.h"
 #include "DoomRPG.h"
 #include "Audio.h"
@@ -11,7 +12,7 @@ Audio_t audio;
 
 void Audio_init(void)
 {
-  audio.soloud = Soloud_create();
+  audio.soloud = SoloudExt_create();
   int res = Soloud_init(audio.soloud);
   if (res != 0) DoomRPG_Error("SoLoud init failed: %d", res);
 

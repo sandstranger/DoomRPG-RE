@@ -2,7 +2,7 @@
 FluidSynth module for SoLoud - C API wrapper
 */
 
-#include "soloud_fluidsynth.h"
+#include "soloud_fluidsynth.hpp"
 
 using namespace SoLoud;
 

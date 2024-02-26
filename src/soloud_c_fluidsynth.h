@@ -5,8 +5,6 @@ FluidSynth module for SoLoud - C API wrapper
 #ifndef SOLOUD_C_FLSYNTH_H
 #define SOLOUD_C_FLSYNTH_H
 
-typedef void* FluidSynth;
-
 void FluidSynth_destroy(void* aClassPtr);
 void* FluidSynth_create();
 int FluidSynth_load(void* aClassPtr, const char* aFilename);
