@@ -1,77 +1,51 @@
-# DoomRPG-RE
+# DoomRPG-RE - PlayStation Vita port (WIP)
 
-![image](https://github.com/Erick194/DoomRPG-RE/assets/41172072/258e99d9-b122-4cbe-8659-2fd0f4105068)<br />
-https://www.doomworld.com/forum/topic/129997
+![Screenshot](https://raw.githubusercontent.com/jakubito/DoomRPG-RE-vita/main/screenshot.png)
 
-## Español
-Doom RPG ingeniería inversa por [GEC]<br />
-Creado por Erick Vásquez García.
+This is a PS Vita port of the reverse engineered [Doom RPG by [GEC]](https://github.com/Erick194/DoomRPG-RE). All credits go to the original team, this project would not exist without their hard work.
 
-Versión actual 0.2.2
+## How to install
 
-Requiere CMake para crear el proyecto.<br />
-Requisitos para el projecto:
-  * SDL2
-  * SDL2-Mixer
-  * Zlib
-  * FluidSynth
+1. The original mobile phone game assets are required to run this port. Search for "Doom RPG BREW" on archive.org, the file you need is `doomrpg.bar` (CRC32: d7cf11c5)
+1. Next, you need `BarToZip.exe` converter tool (Windows only) included in [the PC release](https://github.com/Erick194/DoomRPG-RE/releases/latest)
+1. Drag and drop `doomrpg.bar` onto `BarToZip.exe`. You should now have `DoomRPG.zip` file saved in the same folder
+1. Download [the latest Vita VPK release](https://github.com/jakubito/DoomRPG-RE-vita/releases/latest) and install it using VitaShell
+1. Copy the newly generated `DoomRPG.zip` to `ux0:data/doomrpg/`
+1. You can now run the game
 
-Configuración por defecto de las teclas.
+## Default controls
 
-Move Forward: Up<br />
-Move Backward: Down<br />
-Move Left: A<br />
-Move Right: D<br />
-Turn Left: Left<br />
-Turn Right: Right<br />
-Atk/Talk/Use: Return<br />
-Next Weapon: Z<br />
-Prev Weapon: X<br />
-Pass Turn: C<br />
-Automap: Tab<br />
-Menu Open/Back: Escape<br />
+| Action           | Button      |
+| ---------------  | ----------- |
+| Move Forward     | D-pad up    |
+| Move Backward    | D-pad down  |
+| Move Left        | L           |
+| Move Right       | R           |
+| Turn Left        | D-pad left  |
+| Turn Right       | D-pad right |
+| Attack/Talk/Use  | X           |
+| Next Weapon      | Triangle    |
+| Prev Weapon      | Circle      |
+| Pass Turn        | Square      |
+| Automap          | Select      |
+| Menu Open/Back   | Start       |
 
-Trucos originales del juego:
+## Save and config data
 
-Versión J2ME/BREW:<br />
-Abres menu e ingresa los siguientes numeros.<br />
-3666 -> Abre el menú debug.<br />
-43629 -> Da al jugador maximo de salud y armadura.<br />
-4332 -> Da al jugador todas las llaves, items y armas.<br />
-3366 -> Inicia el testeo de velocidad, "Benchmark".<br />
+All user data is stored in `ux0:data/doomrpg/`. These files are compatible with the PC release.
 
-## English
-Doom RPG Reverse Engineering By [GEC]<br />
-Created by Erick Vásquez García.
+## Building instructions
 
-Current version 0.2.2
+This port uses SDL2, ZLIB, SoLoud and fluidsynth-lite
 
-You need CMake to make the project.<br />
-What you need for the project is:
-  * SDL2
-  * SDL2-Mixer
-  * Zlib
-  * FluidSynth
+1. Install [Vita SDK](https://vitasdk.org/)
+1. Install [fluidsynth-lite](https://github.com/vitasdk/packages/tree/master/fluidsynth-lite) using `vdpm`. Please refer to "Porting libraries" section on Vita SDK's website for further instructions
+1. Run `build.sh` for a debug build or add `-r` flag for a release build. The output VPK is saved as `build/DoomRPG_vita.vpk`
 
-Default key configuration:
+## Bug reporting
 
-Move Forward: Up<br />
-Move Backward: Down<br />
-Move Left: A<br />
-Move Right: D<br />
-Turn Left: Left<br />
-Turn Right: Right<br />
-Atk/Talk/Use: Return<br />
-Next Weapon: Z<br />
-Prev Weapon: X<br />
-Pass Turn: C<br />
-Automap: Tab<br />
-Menu Open/Back: Escape<br />
+If you find a bug, please send me an e-mail to dobes.jakub@gmail.com or open an issue here on github.
 
-Original game cheat codes:
+## License
 
-J2ME/BREW Version:<br />
-3666 -> Opens debug menu.<br />
-43629 -> Gives max health and armor to the player.<br />
-4332 -> Gives all keys, items and weapons to the player.<br />
-3366 -> Starts speed test "Benchmark".<br />
+GPL v3
