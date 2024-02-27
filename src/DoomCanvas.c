@@ -731,8 +731,7 @@ void DoomCanvas_drawCredits(DoomCanvas_t* doomCanvas)
 	int len;
 	if (doomCanvas->creditsTextTime == -1) {
 		len = SDL_strlen(creditsText);
-		doomCanvas->creditsText = SDL_malloc(len + 1);
-		SDL_memset(doomCanvas->creditsText, 0, len + 1);
+		doomCanvas->creditsText = SDL_calloc(len + 1, sizeof(char));
 		strncpy(doomCanvas->creditsText, creditsText, len);
 		doomCanvas->creditsTextTime = doomCanvas->time;
 
@@ -2232,18 +2231,15 @@ void DoomCanvas_loadPrologueText(DoomCanvas_t* doomCanvas)
 	Sound_playSound(doomCanvas->doomRpg->sound, 5039, SND_FLG_LOOP | SND_FLG_STOPSOUNDS | SND_FLG_ISMUSIC, 5);
 
 	textLen = SDL_strlen(storyTextA);
-	doomCanvas->storyText1[0] = SDL_malloc(textLen + 1);
-	SDL_memset(doomCanvas->storyText1[0], 0, textLen + 1);
+	doomCanvas->storyText1[0] = SDL_calloc(textLen + 1, sizeof(char));
 	strncpy(doomCanvas->storyText1[0], storyTextA, textLen);
 
 	textLen = SDL_strlen(storyTextB);
-	doomCanvas->storyText1[1] = SDL_malloc(textLen + 1);
-	SDL_memset(doomCanvas->storyText1[1], 0, textLen + 1);
+	doomCanvas->storyText1[1] = SDL_calloc(textLen + 1, sizeof(char));
 	strncpy(doomCanvas->storyText1[1], storyTextB, textLen);
 
 	textLen = SDL_strlen(storyTextC);
-	doomCanvas->storyText2 = SDL_malloc(textLen + 1);
-	SDL_memset(doomCanvas->storyText2, 0, textLen + 1);
+	doomCanvas->storyText2 = SDL_calloc(textLen + 1, sizeof(char));
 	strncpy(doomCanvas->storyText2, storyTextC, textLen);
 
 	DoomRPG_createImage(doomCanvas->doomRpg, "c.bmp", false, &doomCanvas->imgSpaceBG);

@@ -695,8 +695,7 @@ boolean Render_beginLoadMapData(Render_t* render)
 		render->mapStringCount = 0;
 		while (render->mapStringCount < numStrings) {
 			strSize = DoomRPG_shortAtNext(ioBuffer, &render->ioBufferPos);
-			render->mapStringsIDs[render->mapStringCount] = SDL_malloc(strSize + 1 * sizeof(char));
-			SDL_memset(render->mapStringsIDs[render->mapStringCount], 0, strSize + 1);
+			render->mapStringsIDs[render->mapStringCount] = SDL_calloc(strSize + 1, sizeof(char));
 			strncpy(render->mapStringsIDs[render->mapStringCount], &ioBuffer[render->ioBufferPos], strSize);
 			render->ioBufferPos += strSize;
 			render->mapStringCount++;
