@@ -12,7 +12,7 @@
 	<frame id="frame3">
 		<liveitem>
 			<text>
-				<str size="18" color="#ffffff" shadow="on">Created by Erick Vásquez García, ported by Jakub Dobes</str>
+				<str size="16" color="#ffffff" shadow="on">Created by Erick Vásquez García, ported by Jakub Dobes</str>
 			</text>
 		</liveitem>
 	</frame>
