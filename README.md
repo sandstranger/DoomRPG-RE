@@ -8,7 +8,7 @@ This is a PS Vita port of the [reverse engineered Doom RPG](https://github.com/E
 
 1. Search for "Doom RPG BREW" on [archive.org](https://archive.org/) to get the original mobile game assets file: `doomrpg.bar` (CRC32: d7cf11c5)
 1. Next, you need `BarToZip.exe` converter tool (Windows only) included in the [PC release](https://github.com/Erick194/DoomRPG-RE/releases/latest)
-1. Drag and drop `doomrpg.bar` onto `BarToZip.exe`. You should now have `DoomRPG.zip` file saved in the same folder
+1. Copy `doomrpg.bar` to a folder containing `BarToZip.exe`. Run `BarToZip.exe` to generate `DoomRPG.zip` file
 1. Download the [latest VPK release](https://github.com/jakubito/DoomRPG-RE-vita/releases/latest) and install it using VitaShell
 1. Copy the newly generated `DoomRPG.zip` to `ux0:data/doomrpg/`
 1. You can now start the game
@@ -33,6 +33,15 @@ This is a PS Vita port of the [reverse engineered Doom RPG](https://github.com/E
 ## Save and config data
 
 All user data is stored in `ux0:data/doomrpg/` - these files are compatible with the PC release.
+
+## Cheat codes
+
+| Code  | Default controls                                                 | Action                      |
+| ----- | ---------------------------------------------------------------- | --------------------------- |
+| 3666  | <kbd>R</kbd> <kbd>→</kbd> <kbd>→</kbd> <kbd>→</kbd>              | Open debug menu             |
+| 43629 | <kbd>←</kbd> <kbd>R</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>□</kbd> | Max health and armor        |
+| 4332  | <kbd>←</kbd> <kbd>R</kbd> <kbd>R</kbd> <kbd>↑</kbd>              | All keys, items and weapons |
+| 3366  | <kbd>R</kbd> <kbd>R</kbd> <kbd>→</kbd> <kbd>→</kbd>              | Start benchmark             |
 
 ## Building instructions
 
