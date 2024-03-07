@@ -1887,14 +1887,24 @@ void DoomCanvas_handlePasswordEvents(DoomCanvas_t* doomCanvas, int i)
 
 void DoomCanvas_handleMenuEvents(DoomCanvas_t* doomCanvas, int i) {
 
-	int k, keyAction, menuKey;
+	int j, k, keyAction, menuKey;
 
 	menuKey = i;
 	i &= ~(AVK_MENU_UP | AVK_MENU_DOWN | AVK_MENU_PAGE_UP | AVK_MENU_PAGE_DOWN | AVK_MENU_SELECT | AVK_MENU_OPEN);
 
 	k = (i - AVK_0);
 
-	if ((k > 9) || MenuSystem_enterDigit(doomCanvas->doomRpg->menuSystem, i - AVK_0) == false)
+	// Simulate numpad key presses
+	keyAction = DoomCanvas_getKeyAction(doomCanvas, i);
+
+	for (j = 0; j < NUM_KEYPADS; j++) {
+		if (keys_numKeyPadActions[j] == keyAction) {
+			k = j;
+			break;
+		}
+	}
+
+	if ((k > 9) || MenuSystem_enterDigit(doomCanvas->doomRpg->menuSystem, k) == false)
 	{
 		keyAction = DoomCanvas_getKeyAction(doomCanvas, menuKey);
 		//printf("keyAction %d\n", keyAction);
