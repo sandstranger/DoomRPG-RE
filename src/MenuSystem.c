@@ -391,10 +391,13 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 					}
 					else {
 						if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_CONTROLLER_BUTTON) {
-							SDL_snprintf(textField, sizeof(textField), "%s", SDL_GameControllerGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)));
+							SDL_snprintf(textField, sizeof(textField), "%s", SDL_GameControllerGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH)));
 						}
 						else if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_MOUSE_BUTTON) {
-							SDL_snprintf(textField, sizeof(textField), "%s", SDL_MouseGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)));
+							SDL_snprintf(textField, sizeof(textField), "%s", SDL_MouseGetNameButton(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH)));
+						}
+						else if (keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & IS_TOUCH) {
+							SDL_snprintf(textField, sizeof(textField), "%s", SDL_TouchGetName(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH)));
 						}
 						else{
 							SDL_snprintf(textField, sizeof(textField), "%s", SDL_GetScancodeName(keyMappingTemp[mItem->action].keyBinds[menuSystem->nextMsg % j]));

@@ -167,7 +167,7 @@ int DoomRPG_freeMemory(void) { // 0x1EBFC
 }
 
 // New Function
-int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
+int DoomRPG_getEventKey(int mouse_Button, int touch, const Uint8* state) {
 
 	int i, j, key, num, buttomID;
 
@@ -197,7 +197,7 @@ int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
 
 		for (i = 0; i < (sizeof(keyMapping) / sizeof(keyMapping_t)); ++i) {
 			for (j = 0; j < KEYBINDS_MAX; j++) {
-				if (!(keyMapping[i].keyBinds[j] & (IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)))
+				if (!(keyMapping[i].keyBinds[j] & (IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH)))
 				{
 					if (state[keyMapping[i].keyBinds[j]]) {
 						key = keyMapping[i].avk_action;
@@ -253,7 +253,7 @@ int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
 			for (j = 0; j < KEYBINDS_MAX; j++) {
 				if ((keyMapping[i].keyBinds[j] & IS_MOUSE_BUTTON))
 				{
-					if (mouse_Button == (keyMapping[i].keyBinds[j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON))) {
+					if (mouse_Button == (keyMapping[i].keyBinds[j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH))) {
 						key = keyMapping[i].avk_action;
 						break;
 					}
@@ -300,6 +300,20 @@ int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
 		}
 	}
 
+	// Touch
+	if (touch != TOUCH_INVALID) {
+		for (i = 0; i < (sizeof(keyMapping) / sizeof(keyMapping_t)); ++i) {
+			for (j = 0; j < KEYBINDS_MAX; j++) {
+				if ((keyMapping[i].keyBinds[j] & IS_TOUCH))
+				{
+					if (touch == (keyMapping[i].keyBinds[j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH))) {
+						return keyMapping[i].avk_action;
+					}
+				}
+			}
+		}
+	}
+
 	// GameController/Joystick
 	{
 		if (sdlController.gGameController) {
@@ -314,7 +328,7 @@ int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
 				for (j = 0; j < KEYBINDS_MAX; j++) {
 					if ((keyMapping[i].keyBinds[j] & IS_CONTROLLER_BUTTON))
 					{
-						if (buttomID == (keyMapping[i].keyBinds[j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON))) {
+						if (buttomID == (keyMapping[i].keyBinds[j] & ~(IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON | IS_TOUCH))) {
 							key = keyMapping[i].avk_action;
 							break;
 						}
@@ -419,7 +433,7 @@ static void setBind(int* keyBinds, int keycode)
 }
 
 // New Function
-void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, const Uint8* state) {
+void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, int touch, const Uint8* state) {
 	int i, keyMapId, buttomID;
 
 	// KeyBoard
@@ -437,6 +451,15 @@ void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, const Uint8* state) {
 	if (mouse_Button != MOUSE_BUTTON_INVALID) {
 		keyMapId = doomrpg->menuSystem->items[doomrpg->menuSystem->selectedIndex].action;
 		setBind(keyMappingTemp[keyMapId].keyBinds, mouse_Button | IS_MOUSE_BUTTON);
+		doomrpg->menuSystem->setBind = false;
+		doomrpg->menuSystem->paintMenu = true;
+		return;
+	}
+
+	// Touch
+	if (touch != TOUCH_INVALID) {
+		keyMapId = doomrpg->menuSystem->items[doomrpg->menuSystem->selectedIndex].action;
+		setBind(keyMappingTemp[keyMapId].keyBinds, touch | IS_TOUCH);
 		doomrpg->menuSystem->setBind = false;
 		doomrpg->menuSystem->paintMenu = true;
 		return;

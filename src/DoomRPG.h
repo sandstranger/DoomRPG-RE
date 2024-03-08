@@ -31,6 +31,8 @@ typedef unsigned char byte;
 #define KEYBINDS_MAX 10
 #define IS_MOUSE_BUTTON			0x10000
 #define IS_CONTROLLER_BUTTON	0x20000
+#define IS_TOUCH 				0x40000
+
 typedef struct keyMapping_s
 {
 	int avk_action;
@@ -133,6 +135,12 @@ enum _MOUSE {
 	MOUSE_BUTTON_MOTION_LEFT,	// Mouse Motion Left
 	MOUSE_BUTTON_MOTION_RIGHT,	// Mouse MotionRight
 	MOUSE_BUTTON_MAX
+};
+
+enum _Touch {
+	TOUCH_INVALID = -1,
+	TOUCH_FRONT,
+	TOUCH_BACK
 };
 
 #define LINE_FLAG_RENDER_SPRITE_TWO_SIDED 1 // (internal) rendering both sides of the sprite
@@ -272,9 +280,9 @@ unsigned int DoomRPG_GetTimeMS(void);
 unsigned int DoomRPG_GetUpTimeMS(void);
 int DoomRPG_freeMemory(void);
 
-int DoomRPG_getEventKey(int mouse_Button, const Uint8* state);
+int DoomRPG_getEventKey(int mouse_Button, int touch, const Uint8* state);
 void DoomRPG_setDefaultBinds(DoomRPG_t* doomrpg);
-void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, const Uint8* state);
+void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, int touch, const Uint8* state);
 
 
 int DoomRPG_Init(void);

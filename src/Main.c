@@ -19,7 +19,7 @@ int main(int argc, char* args[])
 	SDL_Event ev;
 	int		UpTime = 0;
 	int		mouseTime = 0;
-	int		key, oldKey, mouse_Button;
+	int		key, oldKey, mouse_Button, touch;
 
 	Z_Init();
 	SDL_InitVideo();
@@ -58,6 +58,7 @@ int main(int argc, char* args[])
 		int currentTimeMillis = DoomRPG_GetUpTimeMS();
 
 		mouse_Button = MOUSE_BUTTON_INVALID;
+		touch = TOUCH_INVALID;
 
 		while (SDL_PollEvent(&ev))
 		{
@@ -132,6 +133,13 @@ int main(int argc, char* args[])
 					break;
 				}
 
+				// Touch events
+				case SDL_FINGERDOWN:
+				{
+					touch = ev.tfinger.touchId;
+					break;
+				}
+
 				case SDL_WINDOWEVENT:
 				{
 					if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -170,7 +178,7 @@ int main(int argc, char* args[])
 			}
 		}
 
-		key = DoomRPG_getEventKey(mouse_Button, state);
+		key = DoomRPG_getEventKey(mouse_Button, touch, state);
 		if (key != oldKey) {
 			//printf("oldKey %d\n", oldKey);
 			//printf("key %d\n", key);
@@ -186,7 +194,7 @@ int main(int argc, char* args[])
 		else if (key == 0) {
 		setBind:
 			if (doomRpg->menuSystem->setBind) {
-				DoomRPG_setBind(doomRpg, mouse_Button, state);
+				DoomRPG_setBind(doomRpg, mouse_Button, touch, state);
 			}
 		}
 

@@ -53,6 +53,7 @@ int SDL_GameControllerGetButtonID(void);
 char* SDL_GameControllerGetNameButton(int id);
 
 char* SDL_MouseGetNameButton(int id);
+char* SDL_TouchGetName(int id);
 
 int SDL_JoystickGetButtonID(void);
 

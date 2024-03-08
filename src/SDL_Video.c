@@ -473,3 +473,16 @@ char* SDL_MouseGetNameButton(int id)
 	return "";
 }
 
+char touchNames[][12] = {
+	"Touch Front",
+	"Touch Back"
+};
+
+char* SDL_TouchGetName(int id)
+{
+	if (id != TOUCH_INVALID) {
+		return touchNames[id];
+	}
+
+	return "";
+}
