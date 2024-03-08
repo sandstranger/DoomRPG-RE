@@ -1023,6 +1023,7 @@ void Menu_initMenu(Menu_t* menu, int i)
 
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Back", 0, 0);
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Bindings", 0, 0);
+			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Mouse", 0, 0);
 			MenuItem_Set(&menuSystem->items[menuSystem->numItems++], "Controller", 0, 0);
 			break;
 		}
@@ -1972,7 +1973,10 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 			else if (itemId == 1) { // Bindings
 				return (menuSystem->type == 1) ? MENU_INGAME_BINDINGS : MENU_BINDINGS;
 			}
-			else if (itemId == 2) { // Controller
+			else if (itemId == 2) { // Mouse
+				return (menuSystem->type == 1) ? MENU_INGAME_MOUSE : MENU_MOUSE;
+			}
+			else if (itemId == 3) { // Controller
 				return (menuSystem->type == 1) ? MENU_INGAME_CONTROLLER : MENU_CONTROLLER;
 			}
 
