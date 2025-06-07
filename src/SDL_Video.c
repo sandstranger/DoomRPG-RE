@@ -61,19 +61,39 @@ void SDL_InitVideo(void)
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 
+#ifdef ANDROID
+    flags |= SDL_WINDOW_FULLSCREEN;
+#else
 	if (sdlVideo.fullScreen) {
 		flags |= SDL_WINDOW_FULLSCREEN;
 	}
+#endif
 
 	// Set the highdpi flags - this makes a big difference on Macs with
 	// retina displays, especially when using small window sizes.
 	flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
-	sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);
+#ifdef ANDROID
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, 1);
+
+    SDL_DisplayMode displayMode;
+    SDL_GetDesktopDisplayMode(0, &displayMode);
+
+    sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, displayMode.w, displayMode.h, flags);
+
+    if (!sdlVideo.window) {
+		DoomRPG_Error("Could not set %dx%d video mode: %s", displayMode.w, displayMode.h, SDL_GetError());
+    }
+#else
+    sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);
 
     if (!sdlVideo.window) {
 		DoomRPG_Error("Could not set %dx%d video mode: %s", video_w, video_h, SDL_GetError());
     }
+#endif
 
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
@@ -84,6 +104,7 @@ void SDL_InitVideo(void)
 
 	sdlVideo.renderer = SDL_CreateRenderer(sdlVideo.window, -1, SDL_RENDERER_ACCELERATED);
 
+#ifndef ANDROID
 	sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
 	sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
 
@@ -93,6 +114,7 @@ void SDL_InitVideo(void)
     SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
+#endif
 
 	// Check for joysticks
 	SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");

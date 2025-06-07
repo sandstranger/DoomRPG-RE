@@ -13,9 +13,22 @@
 #include "SDL_Video.h"
 #include "Z_Zip.h"
 
+#ifdef ANDROID
+#include <SDL_main.h>
+#include <jni.h>
+#endif
+
 extern DoomRPG_t* doomRpg;
+#ifdef ANDROID
+int SDL_main(int argc, char **argv)
+#else
 int main(int argc, char* args[])
+#endif
 {
+#ifdef ANDROID
+    chdir(getenv("ANDROID_GAME_PATH"));
+#endif
+
 	SDL_Event ev;
 	int		UpTime = 0;
 	int		mouseTime = 0;
@@ -25,7 +38,11 @@ int main(int argc, char* args[])
 	SDL_InitVideo();
 	SDL_InitAudio();
 
-	openZipFile("DoomRPG.zip", &zipFile);
+#ifdef ANDROID
+    openZipFile(getenv("RESOURCE_FILE_NAME"), &zipFile);
+#else
+    openZipFile("DoomRPG.zip", &zipFile);
+#endif
 
 	/*int size;
 	byte* data;
@@ -203,3 +220,16 @@ int main(int argc, char* args[])
 
 	return 0;
 }
+
+#ifdef ANDROID
+JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_EngineActivity_resumeSound(JNIEnv *env, jobject thisObject) {
+}
+
+JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_EngineActivity_pauseSound(JNIEnv *env, jobject thisObject) {
+}
+
+JNIEXPORT jboolean JNICALL Java_com_mobilerpgpack_phone_engine_activity_EngineActivity_needToShowScreenControls(JNIEnv *env, jobject thisObject) {
+    return true;
+}
+#endif
+
