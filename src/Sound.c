@@ -13,6 +13,19 @@
 
 #define INIT_ALLSOUNDS	1
 
+#ifdef ANDROID
+static int soundTable[MAX_AUDIOFILES] = {
+	5039, 5040, 5042, 5043, 5044, 5045, 5046, 5047, 5048, 5049, 5050,
+	5051, 5052, 5053, 5054, 5055, 5057, 5058, 5059, 5060, 5061, 5062,
+	5063, 5064, 5065, 5066, 5067, 5068, 5069, 5070, 5071, 5072, 5073,
+	5074, 5076, 5077, 5078, 5079, 5080, 5081, 5082, 5083, 5084, 5085,
+	5086, 5087, 5088, 5089, 5090, 5091, 5092, 5093, 5094, 5095, 5096,
+	5097, 5098, 5099, 5100, 5101, 5102, 5103, 5104, 5105, 5106, 5107,
+	5108, 5109, 5110, 5111, 5112, 5113, 5114, 5115, 5116, 5117, 5118,
+	5119, 5120, 5121, 5122, 5123, 5124, 5125, 5126, 5127, 5128, 5129,
+	5130, 5131, 5133, 5134, 5136, 5137, 5138
+};
+#else
 static soundTable[MAX_AUDIOFILES] = {
 	5039, 5040, 5042, 5043, 5044, 5045, 5046, 5047, 5048, 5049, 5050,
 	5051, 5052, 5053, 5054, 5055, 5057, 5058, 5059, 5060, 5061, 5062,
@@ -24,7 +37,7 @@ static soundTable[MAX_AUDIOFILES] = {
 	5119, 5120, 5121, 5122, 5123, 5124, 5125, 5126, 5127, 5128, 5129,
 	5130, 5131, 5133, 5134, 5136, 5137, 5138
 };
-
+#endif
 Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 {
 	int i;
@@ -392,7 +405,11 @@ void Sound_freeSounds(Sound_t* sound)
 	} while (++chan < (MAX_SOUNDCHANNELS + 1));
 }
 
+#ifdef ANDROID
+int Sound_getFromResourceID(int resourceID)
+#else
 int Sound_getFromResourceID(resourceID)
+#endif
 {
 	for (int i = 0; i < MAX_AUDIOFILES; i++) {
 		if (soundTable[i] == resourceID) {

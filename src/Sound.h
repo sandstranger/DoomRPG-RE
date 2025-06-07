@@ -55,7 +55,11 @@ void Sound_loadSound(Sound_t* sound, int chan, short resourceID);
 void Sound_readySound(Sound_t* sound, int chan);
 void Sound_playSound(Sound_t* sound, int resourceID, byte flags, int priority);
 void Sound_freeSounds(Sound_t* sound);
+#ifdef ANDROID
+int Sound_getFromResourceID(int resourceID);
+#else
 int Sound_getFromResourceID(resourceID);
+#endif
 void Sound_updateVolume(Sound_t* sound);
 int Sound_minusVolume(Sound_t* sound, int volume);
 int Sound_addVolume(Sound_t* sound, int volume);
