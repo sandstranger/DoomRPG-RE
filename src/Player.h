@@ -27,8 +27,8 @@ typedef struct Player_s
 	boolean god;
 	int disabledWeapons;
 	int berserkerTics;
-	int prevCeilingColor;
-	int prevFloorColor;
+	short prevCeilingColor;
+	short prevFloorColor;
 	int time;
 	int totalTime;
 	int moves;

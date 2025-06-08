@@ -46,7 +46,7 @@ typedef struct Line_s
 {
 	Vertex_t vert1;
 	Vertex_t vert2;
-	int texture;
+	short texture;
 	int flags;
 } Line_t;
 
@@ -110,8 +110,8 @@ typedef struct Render_s
 	int texelMemory;
 	int paletteMemory;
 	int mappingMemory;
-	int * ceilingColor;
-	int * floorColor;
+	short* ceilingColor;
+	short* floorColor;
 	byte floorTex;
 	byte ceilingTex;
 	byte unk3;
