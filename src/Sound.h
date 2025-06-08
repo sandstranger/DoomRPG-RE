@@ -63,5 +63,6 @@ int Sound_getFromResourceID(resourceID);
 void Sound_updateVolume(Sound_t* sound);
 int Sound_minusVolume(Sound_t* sound, int volume);
 int Sound_addVolume(Sound_t* sound, int volume);
-
+void Sound_pauseAll(Sound_t* sound);
+void Sound_resumeAll(Sound_t* sound);
 #endif

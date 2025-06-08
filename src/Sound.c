@@ -467,3 +467,36 @@ int Sound_addVolume(Sound_t* sound, int volume)
 	Sound_updateVolume(sound);
 	return sound->volume;
 }
+
+void Sound_pauseAll(Sound_t* sound) {
+    // 1) Pause all Mix_Chunk каналы
+    Mix_Pause(-1);  // передаём -1, чтобы приостановить все каналы
+
+    // 2) Для каждого музыкального канала (fluid_player_t) — остановить
+    for (int chan = 0; chan <= MAX_SOUNDCHANNELS; chan++) {
+        if (sound->soundChannel[chan].flags & SND_FLG_ISMUSIC) {
+            fluid_player_t* player = sound->soundChannel[chan].mediaAudioMusic;
+            if (player && fluid_player_get_status(player) == FLUID_PLAYER_PLAYING) {
+                fluid_player_stop(player);
+                // пометим флаг, чтобы при Resume знать, что его нужно возобновить
+                sound->soundChannel[chan].flags |= SND_FLG_NOFORCESTOP;
+            }
+        }
+    }
+}
+
+// Возобновляет воспроизведение, приостановленное Sound_pauseAll
+void Sound_resumeAll(Sound_t* sound) {
+    // 1) Resume all Mix_Chunk каналы
+    Mix_Resume(-1);
+
+    // 2) Для каждого музыкального канала, который мы остановили — запустить снова
+    for (int chan = 0; chan <= MAX_SOUNDCHANNELS; chan++) {
+        if ((sound->soundChannel[chan].flags & SND_FLG_ISMUSIC) &&
+            (sound->soundChannel[chan].flags & SND_FLG_NOFORCESTOP)) {
+            fluid_player_play(sound->soundChannel[chan].mediaAudioMusic);
+            // убираем наш «пометочный» флаг
+            sound->soundChannel[chan].flags &= ~SND_FLG_NOFORCESTOP;
+        }
+    }
+}
