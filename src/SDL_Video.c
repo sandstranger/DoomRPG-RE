@@ -50,6 +50,9 @@ void SDL_InitVideo(void)
 	Game_loadConfig(NULL);
 
 	SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
+#ifdef ANDROID
+    SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+#endif
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         DoomRPG_Error("Could not initialize SDL: %s", SDL_GetError());
     }
@@ -117,7 +120,7 @@ void SDL_InitVideo(void)
     // be smaller than our internal buffer size.
     SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
-  SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
+    SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
 
 	// Check for joysticks
 	SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");

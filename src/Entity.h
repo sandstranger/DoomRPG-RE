@@ -10,7 +10,7 @@ typedef struct Entity_s
 	struct EntityDef_s* def;
 	struct Entity_s* nextOnTile;
 	struct Entity_s* prevOnTile;
-	short linkIndex;
+	int linkIndex;
 	short pad;
 	int info;
 	int visitOrderCount;

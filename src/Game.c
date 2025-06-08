@@ -961,7 +961,7 @@ void Game_loadPlayerState(Game_t* game, char* fileName)
 {
 	SDL_RWops* rw;
 	byte bData;
-	short len, sData;
+	int len, sData;
 	int data, i;
 
 	rw = SDL_RWFromFile(fileName, "r");
@@ -1103,7 +1103,7 @@ void Game_loadWorldState(Game_t* game)
 	int data, data2, i, cnt;
 	unsigned int anim, frame;
 	int x, y;
-	short fColor, cColor;
+	int fColor, cColor;
 
 	//printf("loadWorldState\event");
 
@@ -1117,7 +1117,7 @@ void Game_loadWorldState(Game_t* game)
 			Game_unlinkEntity(game, entity);
 
 			entity->info = File_readInt(rw);
-			entity->linkIndex = (short)File_readShort(rw);
+			entity->linkIndex = File_readShort(rw);
 
 			if ((entity->info & 0xffff) != 0) {
 				if ((entity->info & 0x200000) == 0) {
@@ -1175,7 +1175,7 @@ void Game_loadWorldState(Game_t* game)
 
 					line->flags = File_readInt(rw);
 					if ((line->flags & 28) != 0) {
-						line->texture = (short)File_readShort(rw);
+						line->texture = File_readShort(rw);
 						line->vert1.x = File_readInt(rw);
 						line->vert1.y = File_readInt(rw);
 						line->vert2.x = File_readInt(rw);
