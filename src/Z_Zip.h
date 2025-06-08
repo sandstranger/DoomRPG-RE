@@ -11,14 +11,14 @@
 typedef struct zip_entry_s
 {
 	char* name;
-	int offset;
-	int csize, usize;
+	uint32_t offset;
+	uint32_t csize, usize;
 }zip_entry_t;
 
 typedef struct zip_file_s
 {
 	SDL_RWops* file;
-	int entry_count;
+	uint16_t entry_count;
 	zip_entry_t* entry;
 	int page_count;
 	int* page;

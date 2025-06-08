@@ -321,8 +321,8 @@ void File_writeLong(SDL_RWops* rw, int i);
 
 boolean File_readBoolean(SDL_RWops* rw);
 int File_readByte(SDL_RWops* rw);
-int File_readShort(SDL_RWops* rw);
+uint16_t File_readShort(SDL_RWops* rw);
 int File_readInt(SDL_RWops* rw);
-int File_readLong(SDL_RWops* rw);
+uint32_t File_readLong(SDL_RWops* rw);
 
 #endif

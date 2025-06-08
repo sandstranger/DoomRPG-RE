@@ -41,7 +41,7 @@ void SDL_InitVideo(void)
 	SDL_memset(&sdlController, 0, sizeof(sdlController));
 
 	// Default
-	sdlVideo.fullScreen = false;
+//	sdlVideo.fullScreen = false;
 	sdlVideo.vSync = false;
 	sdlVideo.integerScaling = true;
 	sdlVideo.resolutionIndex = 8;
@@ -74,6 +74,7 @@ void SDL_InitVideo(void)
 	flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
 #ifdef ANDROID
+    sdlVideo.fullScreen = true;
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -104,17 +105,19 @@ void SDL_InitVideo(void)
 
 	sdlVideo.renderer = SDL_CreateRenderer(sdlVideo.window, -1, SDL_RENDERER_ACCELERATED);
 
-#ifndef ANDROID
-	sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
+#ifdef ANDROID
+    sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
+    sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
+#else
+    sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
 	sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
-
+#endif
     // Since we are going to display a low resolution buffer,
     // it is best to limit the window size so that it cannot
     // be smaller than our internal buffer size.
     SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
-    SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
-#endif
+  SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
 
 	// Check for joysticks
 	SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");

@@ -37,12 +37,13 @@ void EntityDef_free(EntityDefManager_t* entityDef, boolean freePtr)
 
 EntityDef_t* EntityDef_find(EntityDefManager_t* entDef, byte b, byte b2)
 {
-	for (int i = 0; i < entDef->numDefs; i++) {
-		if (entDef->list[i].eType == b && entDef->list[i].eSubType == b2) {
+    for (int i = 0; i < entDef->numDefs; i++) {
+        if (entDef->list[i].eType == b && entDef->list[i].eSubType == b2) {
 			return &entDef->list[i];
 		}
 	}
-	return NULL;
+
+    return NULL;
 }
 
 EntityDef_t* EntityDef_lookup(EntityDefManager_t* entDef, int i)

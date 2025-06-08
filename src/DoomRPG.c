@@ -400,7 +400,7 @@ static void setBind(int* keyBinds, int keycode)
 {
 	int i;
 
-	// Examina si existe anteriormente, si es así, se desvinculará de la lista
+	// Examina si existe anteriormente, si es asï¿½, se desvincularï¿½ de la lista
 	// Examines whether it exists previously, if so, it will be unbind from the list
 	for (i = 0; i < KEYBINDS_MAX; i++) {
 		if (keyBinds[i] == keycode) {
@@ -1184,26 +1184,39 @@ boolean File_readBoolean(SDL_RWops* rw)
 	return boolData;
 }
 
+
 int File_readByte(SDL_RWops* rw)
 {
-	char bData;
+    uint8_t bData = 0;
+    size_t read = 0;
 
-	if (rw) {
-		SDL_RWread(rw, &bData, sizeof(byte), 1);
-	}
+    if (rw) {
+        read = SDL_RWread(rw, &bData, sizeof(uint8_t), 1);
 
-	return (int)bData;
+        if (read != 1) {
+            DoomRPG_Error("File_readByte: failed to read byte at pos %d", (int)SDL_RWtell(rw));
+            return -1;
+        }
+
+        if (bData == 0xFF) {
+            return -1;
+        }
+    } else {
+        DoomRPG_Error("File_readByte: NULL SDL_RWops");
+        return -1;
+    }
+
+    return (int)bData;
 }
 
-int File_readShort(SDL_RWops* rw)
+
+uint16_t File_readShort(SDL_RWops* rw)
 {
-	short sData;
-
-	if (rw) {
-		SDL_RWread(rw, &sData, sizeof(short), 1);
-	}
-
-	return (int)SDL_SwapLE16(sData);
+    uint8_t bytes[2];
+    if (SDL_RWread(rw, bytes, 1, 2) != 2) {
+        DoomRPG_Error("File_readShort: failed to read 2 bytes");
+    }
+    return (uint16_t)(bytes[0] | (bytes[1] << 8));
 }
 
 int File_readInt(SDL_RWops* rw)
@@ -1217,13 +1230,12 @@ int File_readInt(SDL_RWops* rw)
 	return (int)SDL_SwapLE32(iData);
 }
 
-int File_readLong(SDL_RWops* rw)
+
+uint32_t File_readLong(SDL_RWops* rw)
 {
-	long lData;
-
-	if (rw) {
-		SDL_RWread(rw, &lData, sizeof(long), 1);
-	}
-
-	return (int)SDL_SwapLE32(lData);
+    uint8_t bytes[4];
+    if (SDL_RWread(rw, bytes, 1, 4) != 4) {
+        DoomRPG_Error("File_readLong: failed to read 4 bytes");
+    }
+    return (uint32_t)(bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24));
 }

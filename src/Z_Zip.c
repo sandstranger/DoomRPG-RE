@@ -32,7 +32,8 @@ static void zip_free(void* ctx, void* ptr)
 
 void findAndReadZipDir(zip_file_t* zipFile, int startoffset)
 {
-	int sig, offset, count;
+	uint32_t sig, offset;
+    uint16_t  count;
 	int namesize, metasize, commentsize;
 	int i;
 
@@ -137,7 +138,7 @@ void closeZipFile(zip_file_t* zipFile)
 unsigned char* readZipFileEntry(const char* name, zip_file_t* zipFile, int* sizep)
 {
 	zip_entry_t* entry = NULL;
-	int i, sig, general, method, namelength, extralength;
+	uint32_t i, sig, general, method, namelength, extralength;
 	byte* cdata;
 	int code;
 
