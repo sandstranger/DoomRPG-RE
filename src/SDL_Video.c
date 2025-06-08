@@ -109,8 +109,8 @@ void SDL_InitVideo(void)
 	sdlVideo.renderer = SDL_CreateRenderer(sdlVideo.window, -1, SDL_RENDERER_ACCELERATED);
 
 #ifdef ANDROID
-    sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
-    sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
+    sdlVideo.rendererW = atoi(getenv("SCREEN_WIDTH"));
+    sdlVideo.rendererH = atoi(getenv("SCREEN_HEIGHT"));
 #else
     sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
 	sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
@@ -118,10 +118,14 @@ void SDL_InitVideo(void)
     // Since we are going to display a low resolution buffer,
     // it is best to limit the window size so that it cannot
     // be smaller than our internal buffer size.
+
     SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
+#ifdef ANDROID
+    SDL_RenderSetIntegerScale(sdlVideo.renderer, SDL_FALSE);
+#else
     SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
-
+#endif
 	// Check for joysticks
 	SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
 
