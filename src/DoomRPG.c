@@ -1164,12 +1164,13 @@ void File_writeInt(SDL_RWops* rw, int i)
 		SDL_RWwrite(rw, &iData, sizeof(int), 1);
 	}
 }
+
 void File_writeLong(SDL_RWops* rw, int i)
 {
-	long lData;
+	int lData;
 	lData = SDL_SwapLE32(i);
 	if (rw) {
-		SDL_RWwrite(rw, &lData, sizeof(long), 1);
+		SDL_RWwrite(rw, &lData, sizeof(int), 1);
 	}
 }
 
