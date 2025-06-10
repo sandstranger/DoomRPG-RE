@@ -10,10 +10,19 @@
 #include "Game.h"
 #include "SDL_Video.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
+
 SDLVideo_t sdlVideo;
 SDLController_t sdlController;
 FluidSynth_t fluidSynth;
 
+#ifdef ANDROID
+SDLVidModes_t *sdlVideoModes;
+int generatedVideoModsCount;
+#else
 SDLVidModes_t sdlVideoModes[14] =
 {
 	{128, 128},
@@ -31,6 +40,86 @@ SDLVidModes_t sdlVideoModes[14] =
 	{640, 480},
 	{800, 600}
 };
+#endif
+
+#ifdef ANDROID
+#define MIN_WIDTH 100
+#define MIN_HEIGHT 60
+
+int isDuplicate(SDLVidModes_t* modes, int count, int w, int h) {
+    for (int i = 0; i < count; i++) {
+        if (modes[i].width == w && modes[i].height == h) return 1;
+    }
+    return 0;
+}
+
+SDLVidModes_t* generateVideoModes(int nativeWidth, int nativeHeight, int* outCount, int includeOriginal) {
+    int capacity = 32;
+    int count = 0;
+    SDLVidModes_t* modes = (SDLVidModes_t*)malloc(capacity * sizeof(SDLVidModes_t));
+    if (!modes) {
+        perror("malloc failed");
+        *outCount = 0;
+        return NULL;
+    }
+
+    double div = 6.0;
+    double minDiv = 1.0;
+    double step = 0.1;
+
+    while (div >= minDiv) {
+        int w = (int)(nativeWidth / div);
+        int h = (int)(nativeHeight / div);
+
+        if (w < MIN_WIDTH || h < MIN_HEIGHT) {
+            div -= step;
+            continue;
+        }
+
+        if (!isDuplicate(modes, count, w, h)) {
+            if (count >= capacity) {
+                capacity *= 2;
+                SDLVidModes_t* tmp = (SDLVidModes_t*)realloc(modes, capacity * sizeof(SDLVidModes_t));
+                if (!tmp) {
+                    perror("realloc failed");
+                    free(modes);
+                    *outCount = 0;
+                    return NULL;
+                }
+                modes = tmp;
+            }
+            modes[count].width = w;
+            modes[count].height = h;
+            count++;
+        }
+
+        div -= step;
+    }
+
+    if (includeOriginal) {
+        if (!isDuplicate(modes, count, nativeWidth, nativeHeight)) {
+            if (count >= capacity) {
+                capacity += 1;
+                SDLVidModes_t* tmp = (SDLVidModes_t*)realloc(modes, capacity * sizeof(SDLVidModes_t));
+                if (!tmp) {
+                    perror("realloc failed");
+                    free(modes);
+                    *outCount = 0;
+                    return NULL;
+                }
+                modes = tmp;
+            }
+            modes[count].width = nativeWidth;
+            modes[count].height = nativeHeight;
+            count++;
+        }
+    }
+
+    *outCount = count;
+    return modes;
+}
+#endif
+
 
 void SDL_InitVideo(void)
 {
@@ -44,10 +133,23 @@ void SDL_InitVideo(void)
 //	sdlVideo.fullScreen = false;
 	sdlVideo.vSync = false;
 	sdlVideo.integerScaling = true;
+#ifndef ANDROID
 	sdlVideo.resolutionIndex = 8;
+#else
+    sdlVideoModes = generateVideoModes(atoi(getenv("SCREEN_WIDTH")),
+                                             atoi(getenv("SCREEN_HEIGHT")),
+                                             &generatedVideoModsCount, 1);
+    sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
+
+#endif
 	sdlVideo.displaySoftKeys = true;
 
 	Game_loadConfig(NULL);
+#ifdef ANDROID
+    if (strcmp(getenv("RECALCULATE_RESOLUTION_INDEX"), "true") == 0){
+        sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
+    }
+#endif
 
 	SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
 #ifdef ANDROID
@@ -57,11 +159,15 @@ void SDL_InitVideo(void)
         DoomRPG_Error("Could not initialize SDL: %s", SDL_GetError());
     }
 
+#ifndef ANDROID
     flags = SDL_WINDOW_OPENGL| SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
     video_w = sdlVideoModes[sdlVideo.resolutionIndex].width;
     video_h = sdlVideoModes[sdlVideo.resolutionIndex].height;
+#else
+    flags = SDL_WINDOW_OPENGL| SDL_WINDOW_SHOWN;
+#endif
 
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_ShowCursor(SDL_DISABLE);
 
 #ifdef ANDROID
@@ -78,6 +184,7 @@ void SDL_InitVideo(void)
 
 #ifdef ANDROID
     sdlVideo.fullScreen = true;
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -103,29 +210,24 @@ void SDL_InitVideo(void)
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	SDL_SetHint(SDL_HINT_RENDER_VSYNC, sdlVideo.vSync ? "1" : "0");
 
 	sdlVideo.renderer = SDL_CreateRenderer(sdlVideo.window, -1, SDL_RENDERER_ACCELERATED);
 
-#ifdef ANDROID
-    sdlVideo.rendererW = atoi(getenv("SCREEN_WIDTH"));
-    sdlVideo.rendererH = atoi(getenv("SCREEN_HEIGHT"));
-#else
     sdlVideo.rendererW = sdlVideoModes[sdlVideo.resolutionIndex].width;
-	sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
-#endif
-    // Since we are going to display a low resolution buffer,
-    // it is best to limit the window size so that it cannot
-    // be smaller than our internal buffer size.
+    sdlVideo.rendererH = sdlVideoModes[sdlVideo.resolutionIndex].height;
 
     SDL_SetWindowMinimumSize(sdlVideo.window, sdlVideo.rendererW, sdlVideo.rendererH);
     SDL_RenderSetLogicalSize(sdlVideo.renderer, sdlVideo.rendererW, sdlVideo.rendererH);
+
+
 #ifdef ANDROID
     SDL_RenderSetIntegerScale(sdlVideo.renderer, SDL_FALSE);
 #else
     SDL_RenderSetIntegerScale(sdlVideo.renderer, sdlVideo.integerScaling);
 #endif
+
 	// Check for joysticks
 	SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
 
@@ -220,6 +322,20 @@ SDLVideo_t* SDL_GetVideo(void)
 {
 	return &sdlVideo;
 }
+
+#ifdef ANDROID
+int GetDefaultScreenResolutionIndex() {
+    if (generatedVideoModsCount <= 0) return 0;
+
+    int index = (int)(generatedVideoModsCount * 0.6);
+
+    if (index >= generatedVideoModsCount) {
+        index = generatedVideoModsCount - 1;
+    }
+
+    return index;
+}
+#endif
 
 void SDL_RenderDrawFillCircle(SDL_Renderer* renderer, int x, int y, int r)
 {

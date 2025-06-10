@@ -821,8 +821,8 @@ void Menu_initMenu(Menu_t* menu, int i)
 			MenuItem_Set2(&menuSystem->items[menuSystem->numItems++], "Pos:", text, 0, 0);
 
 			
-			// En el código fuente original se obtiene la memoria RAM del dispositivo
-			// In the actual source code, the device’s RAM memory is obtained
+			// En el cï¿½digo fuente original se obtiene la memoria RAM del dispositivo
+			// In the actual source code, the deviceï¿½s RAM memory is obtained
 			// SDL_snprintf(text, sizeof(text), "%dK", ((menu->doomRpg->m_DeviceInfo).dwRAM + 1023) / 1024);
 			
 			// Actualmente se obtiene el total de toda la momoria inicializada
@@ -1967,9 +1967,15 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 			}
 			else if (itemId == 5) { // New resolution Option
 				sdlVideo.resolutionIndex++;
+#ifndef ANDROID
 				if (sdlVideo.resolutionIndex >= (sizeof(sdlVideoModes) / sizeof(SDLVidModes_t))) {
 					sdlVideo.resolutionIndex = 0;
 				}
+#else
+                if (sdlVideo.resolutionIndex >= generatedVideoModsCount) {
+                    sdlVideo.resolutionIndex = 0;
+                }
+#endif
 				SDL_snprintf(text, sizeof(text), "(%dx%d)", sdlVideoModes[sdlVideo.resolutionIndex].width, sdlVideoModes[sdlVideo.resolutionIndex].height);
 				strncpy(menuSystem->items[itemId].textField, text, sizeof(menuSystem->items[itemId].textField));
 			}

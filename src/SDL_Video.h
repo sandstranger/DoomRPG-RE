@@ -57,7 +57,13 @@ typedef struct SDLVidModes_s
 	int width, height;
 } SDLVidModes_t;
 
+#ifdef ANDROID
+extern SDLVidModes_t *sdlVideoModes;
+extern int generatedVideoModsCount;
+extern int GetDefaultScreenResolutionIndex();
+#else
 extern SDLVidModes_t sdlVideoModes[14];
+#endif
 
 //Analog joystick dead zone
 #define JOYSTICK_DEAD_ZONE 8000

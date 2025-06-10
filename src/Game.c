@@ -742,7 +742,11 @@ void Game_loadConfig(Game_t* game)
 			
 			// New
 			intData = File_readInt(rw);
-			sdlVideo.resolutionIndex = intData;
+            sdlVideo.resolutionIndex = intData;
+
+            if (sdlVideo.resolutionIndex >=generatedVideoModsCount) {
+                sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
+            }
 
 			// New
 			intData = File_readInt(rw);
