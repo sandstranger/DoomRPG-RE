@@ -135,14 +135,15 @@ void SDL_InitVideo(void)
 	sdlVideo.integerScaling = true;
 #ifndef ANDROID
 	sdlVideo.resolutionIndex = 8;
+    sdlVideo.displaySoftKeys = true;
 #else
+    sdlVideo.displaySoftKeys = false;
     sdlVideoModes = generateVideoModes(atoi(getenv("SCREEN_WIDTH")),
                                              atoi(getenv("SCREEN_HEIGHT")),
                                              &generatedVideoModsCount, 1);
     sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
 
 #endif
-	sdlVideo.displaySoftKeys = true;
 
 	Game_loadConfig(NULL);
 #ifdef ANDROID
