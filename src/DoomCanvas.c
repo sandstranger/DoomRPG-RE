@@ -368,7 +368,7 @@ void DoomCanvas_combatState(DoomCanvas_t* doomCanvas)
 		DoomCanvas_drawRGB(doomCanvas);
 	}
 
-	// En el código original esta función está en la función "Hud_drawEffects", pero decidí moverla aquí, 
+	// En el cï¿½digo original esta funciï¿½n estï¿½ en la funciï¿½n "Hud_drawEffects", pero decidï¿½ moverla aquï¿½, 
 	// esto evita que se superponga a otros objetos dibujados previamente.
 	// 
 	// In the original code this function is in the "Hud_drawEffects" function, but I decided to move it here, 
@@ -427,7 +427,7 @@ void DoomCanvas_dialogState(DoomCanvas_t* doomCanvas)
 	DoomCanvas_updateView(doomCanvas);
 	DoomCanvas_drawRGB(doomCanvas);
 
-	// En el código original esta función está en la función "Hud_drawEffects", pero decidí moverla aquí, 
+	// En el cï¿½digo original esta funciï¿½n estï¿½ en la funciï¿½n "Hud_drawEffects", pero decidï¿½ moverla aquï¿½, 
 	// esto evita que se superponga a otros objetos dibujados previamente.
 	// 
 	// In the original code this function is in the "Hud_drawEffects" function, but I decided to move it here, 
@@ -1213,49 +1213,52 @@ void DoomCanvas_drawStory(DoomCanvas_t* doomCanvas)
 
 void DoomCanvas_drawRGB(DoomCanvas_t* doomCanvas)
 {
-	// Port:
-	// aplicar esta función antes de actualizar el framebuffer
-	// apply this function before updating the framebuffer
-	//if (doomCanvas->doomRpg->player->berserkerTics) {
-		//Render_setBerserkColor(doomCanvas->doomRpg->render);
-	//}
+    if (doomCanvas->time < doomCanvas->shaketime) {
+        if (!doomCanvas->skipShakeX) {
+            doomCanvas->shakeX = ((DoomRPG_randNextByte(&doomCanvas->doomRpg->random)) % (doomCanvas->shakeVal * 2)) - doomCanvas->shakeVal;
+        }
+        doomCanvas->shakeY = ((DoomRPG_randNextByte(&doomCanvas->doomRpg->random)) % (doomCanvas->shakeVal * 2)) - doomCanvas->shakeVal;
+    } else {
+        doomCanvas->shakeX = 0;
+        doomCanvas->shakeY = 0;
+    }
 
-	if (doomCanvas->time < doomCanvas->shaketime) {
-		if (!doomCanvas->skipShakeX) {
-			doomCanvas->shakeX = ((DoomRPG_randNextByte(&doomCanvas->doomRpg->random)) % (doomCanvas->shakeVal * 2)) - doomCanvas->shakeVal;
-		}
-		doomCanvas->shakeY = ((DoomRPG_randNextByte(&doomCanvas->doomRpg->random)) % (doomCanvas->shakeVal * 2)) - doomCanvas->shakeVal;
-	}
-	else if (!(doomCanvas->shakeX == 0 && doomCanvas->shakeY == 0)) {
-		doomCanvas->shakeY = 0;
-		doomCanvas->shakeX = 0;
-	}
+    if (doomCanvas->state == ST_CAST) {
+        doomCanvas->shakeX = 0;
+        doomCanvas->shakeY = 0;
+    }
 
-	if (doomCanvas->state == ST_CAST) {
-		doomCanvas->shakeY = 0;
-		doomCanvas->shakeX = 0;
-	}
+    SDL_Rect clip = { 0, 0, doomCanvas->render->screenWidth, doomCanvas->render->screenHeight };
 
-	SDL_Rect renderQuad, clip;
+    SDL_Rect renderQuad = {
+            doomCanvas->render->screenX + doomCanvas->shakeX,
+            doomCanvas->render->screenY + doomCanvas->shakeY,
+            doomCanvas->render->screenWidth,
+            doomCanvas->render->screenHeight
+    };
 
-	clip.x = doomCanvas->render->screenX;
-	clip.y = doomCanvas->render->screenY;
-	clip.w = doomCanvas->render->screenWidth;
-	clip.h = doomCanvas->render->screenHeight;
+    if (renderQuad.x < 0) {
+        renderQuad.w += renderQuad.x;
+        renderQuad.x = 0;
+    }
+    if (renderQuad.y < 0) {
+        renderQuad.h += renderQuad.y;
+        renderQuad.y = 0;
+    }
+    if (renderQuad.x + renderQuad.w > sdlVideo.rendererW) {
+        renderQuad.w = sdlVideo.rendererW - renderQuad.x;
+    }
+    if (renderQuad.y + renderQuad.h > sdlVideo.rendererH) {
+        renderQuad.h = sdlVideo.rendererH - renderQuad.y;
+    }
 
-	renderQuad.x = doomCanvas->render->screenX;
-	renderQuad.y = doomCanvas->render->screenY;
-	renderQuad.w = sdlVideo.rendererW;
-	renderQuad.h = sdlVideo.rendererH;
-	if (clip.w <= renderQuad.w) {
-		renderQuad.w = clip.w;
-	}
-	if (clip.h <= renderQuad.h) {
-		renderQuad.h = clip.h;
-	}
+    if (renderQuad.w <= 0 || renderQuad.h <= 0) {
+        return;
+    }
 
-	SDL_UpdateTexture(doomCanvas->render->piDIB, NULL, doomCanvas->render->framebuffer, sdlVideo.rendererW * 2);
-	SDL_RenderCopy(sdlVideo.renderer, doomCanvas->render->piDIB, &clip, &renderQuad);
+    SDL_UpdateTexture(doomCanvas->render->piDIB, NULL, doomCanvas->render->framebuffer, doomCanvas->render->pitch);
+
+    SDL_RenderCopy(sdlVideo.renderer, doomCanvas->render->piDIB, &clip, &renderQuad);
 
 	//DoomRPG_flushGraphics(doomCanvas->doomRpg);
 }
@@ -2566,7 +2569,7 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 
 			DoomCanvas_updateView(doomCanvas);
 			applyBerserk = true;
-		} // <- Agregué el corchete aquí, ya que necesito que los gráficos se actualicen siempre en cada cuadro, 
+		} // <- Agreguï¿½ el corchete aquï¿½, ya que necesito que los grï¿½ficos se actualicen siempre en cada cuadro, 
 		  //    sin que intervengan las actualizaciones del movimiento del jugador.
 		  // <- I added the bracket here as I need the graphics to always update on every frame, 
 		  //    without player movement updates intervening.
@@ -2585,7 +2588,7 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 
 			DoomCanvas_drawRGB(doomCanvas);
 
-			// En el código original esta función está en la función "Hud_drawEffects", pero decidí moverla aquí, 
+			// En el cï¿½digo original esta funciï¿½n estï¿½ en la funciï¿½n "Hud_drawEffects", pero decidï¿½ moverla aquï¿½, 
 			// esto evita que se superponga a otros objetos dibujados previamente.
 			// 
 			// In the original code this function is in the "Hud_drawEffects" function, but I decided to move it here, 
