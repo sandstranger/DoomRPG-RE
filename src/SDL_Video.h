@@ -36,6 +36,8 @@ extern FluidSynth_t fluidSynth;
 
 void SDL_InitAudio(void);
 void SDL_CloseAudio(void);
+void CloseController();
+void OpenController(int deviceId);
 
 //-----
 typedef struct SDLController_s

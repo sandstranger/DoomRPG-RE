@@ -120,6 +120,72 @@ SDLVidModes_t* generateVideoModes(int nativeWidth, int nativeHeight, int* outCou
 }
 #endif
 
+void OpenController(int deviceId){
+
+    if (sdlController.gGameController || sdlController.gJoystick){
+        return;
+    }
+
+    printf("Joysticks connected: %d\n", SDL_NumJoysticks());
+
+    // Open game controller and check if it supports rumble
+    sdlController.gGameController = SDL_GameControllerOpen(deviceId);
+    if (sdlController.gGameController) {
+
+        // Check if joystick supports Rumble
+        if (!SDL_GameControllerHasRumble(sdlController.gGameController)) {
+            printf("Warning: Game controller does not have rumble! SDL Error: %s\n", SDL_GetError());
+        }
+    }
+
+    // Load joystick if game controller could not be loaded
+    if (sdlController.gGameController == NULL) {
+        // Open first joystick
+        sdlController.gJoystick = SDL_JoystickOpen(deviceId);
+        if (sdlController.gJoystick == NULL) {
+            printf("Warning: Unable to open joystick! SDL Error: %s\n", SDL_GetError());
+        }
+        else
+        {
+            // Check if joystick supports haptic
+            if (!SDL_JoystickIsHaptic(sdlController.gJoystick)) {
+                printf("Warning: Controller does not support haptics! SDL Error: %s\n", SDL_GetError());
+            }
+            else
+            {
+                // Get joystick haptic device
+                sdlController.gJoyHaptic = SDL_HapticOpenFromJoystick(sdlController.gJoystick);
+                if (sdlController.gJoyHaptic == NULL) {
+                    printf("Warning: Unable to get joystick haptics! SDL Error: %s\n", SDL_GetError());
+                }
+                else
+                {
+                    // Initialize rumble
+                    if (SDL_HapticRumbleInit(sdlController.gJoyHaptic) < 0) {
+                        printf("Warning: Unable to initialize haptic rumble! SDL Error: %s\n", SDL_GetError());
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CloseController(){
+    if (sdlController.gGameController){
+        SDL_GameControllerClose(sdlController.gGameController);
+        sdlController.gGameController = NULL;
+    }
+
+    if (sdlController.gJoyHaptic){
+        SDL_HapticClose(sdlController.gJoyHaptic);
+        sdlController.gJoyHaptic = NULL;
+    }
+
+    if (sdlController.gJoystick){
+        SDL_JoystickClose(sdlController.gJoystick);
+        sdlController.gJoystick = NULL;
+    }
+}
 
 void SDL_InitVideo(void)
 {
@@ -250,50 +316,10 @@ void SDL_InitVideo(void)
 		printf("Warning: No joysticks connected!\n");
 	}
 	else {
-		printf("Joysticks connected: %d\n", SDL_NumJoysticks());
-
-		// Open game controller and check if it supports rumble
-		sdlController.gGameController = SDL_GameControllerOpen(0);
-		if (sdlController.gGameController) {
-
-			// Check if joystick supports Rumble
-			if (!SDL_GameControllerHasRumble(sdlController.gGameController)) {
-				printf("Warning: Game controller does not have rumble! SDL Error: %s\n", SDL_GetError());
-			}
-		}
-
-		// Load joystick if game controller could not be loaded
-		if (sdlController.gGameController == NULL) {
-			// Open first joystick
-			sdlController.gJoystick = SDL_JoystickOpen(0);
-			if (sdlController.gJoystick == NULL) {
-				printf("Warning: Unable to open joystick! SDL Error: %s\n", SDL_GetError());
-			}
-			else
-			{
-				// Check if joystick supports haptic
-				if (!SDL_JoystickIsHaptic(sdlController.gJoystick)) {
-					printf("Warning: Controller does not support haptics! SDL Error: %s\n", SDL_GetError());
-				}
-				else
-				{
-					// Get joystick haptic device
-					sdlController.gJoyHaptic = SDL_HapticOpenFromJoystick(sdlController.gJoystick);
-					if (sdlController.gJoyHaptic == NULL) {
-						printf("Warning: Unable to get joystick haptics! SDL Error: %s\n", SDL_GetError());
-					}
-					else
-					{
-						// Initialize rumble
-						if (SDL_HapticRumbleInit(sdlController.gJoyHaptic) < 0) {
-							printf("Warning: Unable to initialize haptic rumble! SDL Error: %s\n", SDL_GetError());
-						}
-					}
-				}
-			}
-		}
+        OpenController(0);
 	}
 }
+
 
 void SDL_Close(void)
 {

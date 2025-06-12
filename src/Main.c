@@ -82,6 +82,14 @@ int main(int argc, char* args[])
 			// check event type
 			switch (ev.type) {
 
+                case SDL_CONTROLLERDEVICEADDED:{
+                    OpenController(ev.cdevice.which);
+                    break;
+                }
+                case SDL_CONTROLLERDEVICEREMOVED:  {
+                    CloseController();
+                    break;
+                }
 				// Mouse Event
 				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
