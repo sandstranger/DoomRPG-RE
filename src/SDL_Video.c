@@ -199,6 +199,14 @@ void SDL_InitVideo(void)
     if (!sdlVideo.window) {
 		DoomRPG_Error("Could not set %dx%d video mode: %s", displayMode.w, displayMode.h, SDL_GetError());
     }
+
+    char *pathToSdl2ControllerDb = getenv("PATH_TO_SDL2_CONTROLLER_DB");
+
+    if (SDL_GameControllerAddMappingsFromFile(pathToSdl2ControllerDb) < 0) {
+        SDL_Log("Couldn't load mappings: %s\n", SDL_GetError());
+    } else{
+        SDL_Log("Custom controller db was loaded from: %s", pathToSdl2ControllerDb);
+    }
 #else
     sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);
 
