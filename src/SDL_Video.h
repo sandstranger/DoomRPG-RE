@@ -50,6 +50,7 @@ typedef struct SDLController_s
 	SDL_Haptic* gJoyHaptic;
 	int deadZoneLeft;
 	int deadZoneRight;
+    int deviceId;
 } SDLController_t;
 
 extern SDLController_t sdlController;

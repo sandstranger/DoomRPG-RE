@@ -81,13 +81,14 @@ int main(int argc, char* args[])
 		{
 			// check event type
 			switch (ev.type) {
-
                 case SDL_CONTROLLERDEVICEADDED:{
                     OpenController(ev.cdevice.which);
                     break;
                 }
                 case SDL_CONTROLLERDEVICEREMOVED:  {
-                    CloseController();
+                    if (ev.cdevice.which == sdlController.deviceId) {
+                        CloseController();
+                    }
                     break;
                 }
 				// Mouse Event

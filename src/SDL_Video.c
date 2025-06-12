@@ -126,6 +126,7 @@ void OpenController(int deviceId){
         return;
     }
 
+    sdlController.deviceId = deviceId;
     printf("Joysticks connected: %d\n", SDL_NumJoysticks());
 
     // Open game controller and check if it supports rumble
@@ -185,6 +186,7 @@ void CloseController(){
         SDL_JoystickClose(sdlController.gJoystick);
         sdlController.gJoystick = NULL;
     }
+    sdlController.deviceId = -1;
 }
 
 void SDL_InitVideo(void)
@@ -313,6 +315,7 @@ void SDL_InitVideo(void)
 	sdlController.deadZoneRight = 25;
 
 	if (SDL_NumJoysticks() < 1) {
+        sdlController.deviceId = -1;
 		printf("Warning: No joysticks connected!\n");
 	}
 	else {
