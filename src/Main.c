@@ -91,9 +91,11 @@ int main(int argc, char* args[])
                 case SDL_CONTROLLERDEVICEREMOVED:  {
                     if (ev.cdevice.which == sdlController.deviceId) {
                         CloseController();
+                        RescanAndOpenFirstConnectedDevice();
                     }
                     break;
                 }
+
 				// Mouse Event
 				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
@@ -200,7 +202,8 @@ int main(int argc, char* args[])
 			}
 
 			key = DoomRPG_getEventKey(mouse_Button, state);
-			if (key != oldKey) {
+
+            if (key != oldKey) {
 				//printf("oldKey %d\n", oldKey);
 				//printf("key %d\n", key);
 

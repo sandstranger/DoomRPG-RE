@@ -25,8 +25,8 @@ DoomRPG_t* doomRpg = NULL;
 keyMapping_t keyMapping[12];
 keyMapping_t keyMappingTemp[12];
 keyMapping_t keyMappingDefault[12] = {
-	{AVK_UP | AVK_MENU_UP,				{SDL_SCANCODE_UP, CONTROLLER_BUTTON_DPAD_UP | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move forward
-	{AVK_DOWN | AVK_MENU_DOWN,			{SDL_SCANCODE_DOWN,CONTROLLER_BUTTON_DPAD_DOWN | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move backward
+	{AVK_UP | AVK_MENU_UP,				{SDL_SCANCODE_UP,SDL_SCANCODE_W, CONTROLLER_BUTTON_DPAD_UP | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move forward
+	{AVK_DOWN | AVK_MENU_DOWN,			{SDL_SCANCODE_DOWN,SDL_SCANCODE_S,CONTROLLER_BUTTON_DPAD_DOWN | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move backward
 	{AVK_LEFT | AVK_MENU_PAGE_UP,		{SDL_SCANCODE_LEFT,CONTROLLER_BUTTON_DPAD_LEFT | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Turn left/page up
 	{AVK_RIGHT | AVK_MENU_PAGE_DOWN,	{SDL_SCANCODE_RIGHT,CONTROLLER_BUTTON_DPAD_RIGHT | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Turn right/page down
 	{AVK_MOVELEFT,						{SDL_SCANCODE_A,CONTROLLER_BUTTON_LEFT_BUMPER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move left
@@ -310,7 +310,7 @@ int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
 			buttomID = SDL_JoystickGetButtonID();
 		}
 
-		if (buttomID != -1) {
+        if (buttomID != -1) {
 			for (i = 0; i < (sizeof(keyMapping) / sizeof(keyMapping_t)); ++i) {
 				for (j = 0; j < KEYBINDS_MAX; j++) {
 					if ((keyMapping[i].keyBinds[j] & IS_CONTROLLER_BUTTON))

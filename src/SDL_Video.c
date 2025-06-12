@@ -120,6 +120,20 @@ SDLVidModes_t* generateVideoModes(int nativeWidth, int nativeHeight, int* outCou
 }
 #endif
 
+void RescanAndOpenFirstConnectedDevice(){
+    const int numJoysticks = SDL_NumJoysticks();
+
+    for (int joyIdx = 0; joyIdx < numJoysticks; ++joyIdx) {
+        if (SDL_IsGameController(joyIdx)) {
+            OpenController(joyIdx);
+
+            if (sdlController.deviceId >= 0){
+                return;
+            }
+        }
+    }
+}
+
 void OpenController(int deviceId){
 
     if (sdlController.gGameController || sdlController.gJoystick){
@@ -134,7 +148,7 @@ void OpenController(int deviceId){
     if (sdlController.gGameController) {
 
         // Check if joystick supports Rumble
-        if (!SDL_GameControllerHasRumble(sdlController.gGameController)) {
+       if (!SDL_GameControllerHasRumble(sdlController.gGameController)) {
             printf("Warning: Game controller does not have rumble! SDL Error: %s\n", SDL_GetError());
         }
     }
@@ -319,7 +333,7 @@ void SDL_InitVideo(void)
 		printf("Warning: No joysticks connected!\n");
 	}
 	else {
-        OpenController(0);
+        RescanAndOpenFirstConnectedDevice();
 	}
 }
 
@@ -630,7 +644,7 @@ int SDL_JoystickGetButtonID(void)
 	deadZoneRight = (sdlController.deadZoneRight * 32768) / 100;
 
 	if (SDL_JoystickGetButton(sdlController.gJoystick, 0)) {
-		return CONTROLLER_BUTTON_Y;
+		return CONTROLLER_BUTTON_A;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 1)) {
 		return CONTROLLER_BUTTON_B;
@@ -639,7 +653,7 @@ int SDL_JoystickGetButtonID(void)
 		return CONTROLLER_BUTTON_A;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 3)) {
-		return CONTROLLER_BUTTON_X;
+		return CONTROLLER_BUTTON_Y;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 4)) {
 		return CONTROLLER_BUTTON_LEFT_TRIGGER;
@@ -648,16 +662,16 @@ int SDL_JoystickGetButtonID(void)
 		return CONTROLLER_BUTTON_RIGHT_TRIGGER;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 6)) {
-		return CONTROLLER_BUTTON_LEFT_BUMPER;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 7)) {
-		return CONTROLLER_BUTTON_RIGHT_BUMPER;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 8)) {
 		return CONTROLLER_BUTTON_BACK;
 	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 9)) {
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 7)) {
 		return CONTROLLER_BUTTON_START;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 8)) {
+		return SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 9)) {
+		return SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
 	}
 	else {
 		numAxes = SDL_JoystickNumAxes(sdlController.gJoystick);

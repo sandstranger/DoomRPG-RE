@@ -38,7 +38,7 @@ void SDL_InitAudio(void);
 void SDL_CloseAudio(void);
 void CloseController();
 void OpenController(int deviceId);
-
+void RescanAndOpenFirstConnectedDevice();
 //-----
 typedef struct SDLController_s
 {
