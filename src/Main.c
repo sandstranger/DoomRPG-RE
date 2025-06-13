@@ -81,18 +81,12 @@ int main(int argc, char* args[])
 		{
 			// check event type
 			switch (ev.type) {
-                case SDL_JOYDEVICEADDED:
-                case SDL_CONTROLLERDEVICEADDED:{
-                    OpenController(ev.cdevice.which);
-                    break;
-                }
 
-                case SDL_JOYDEVICEREMOVED:
+                case SDL_JOYDEVICEADDED:
+                case SDL_CONTROLLERDEVICEADDED:
+                    case SDL_JOYDEVICEREMOVED:
                 case SDL_CONTROLLERDEVICEREMOVED:  {
-                    if (ev.cdevice.which == sdlController.deviceId) {
-                        CloseController();
-                        RescanAndOpenFirstConnectedDevice();
-                    }
+                    RescanAndOpenFirstConnectedDevice();
                     break;
                 }
 

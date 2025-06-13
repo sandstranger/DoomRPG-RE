@@ -120,33 +120,17 @@ SDLVidModes_t* generateVideoModes(int nativeWidth, int nativeHeight, int* outCou
 }
 #endif
 
-void RescanAndOpenFirstConnectedDevice(){
-    const int numJoysticks = SDL_NumJoysticks();
-
-    for (int joyIdx = 0; joyIdx < numJoysticks; ++joyIdx) {
-        if (SDL_IsGameController(joyIdx)) {
-            OpenController(joyIdx);
-
-            if (sdlController.deviceId >= 0){
-                return;
-            }
-        }
-    }
-}
-
 void OpenController(int deviceId){
 
     if (sdlController.gGameController || sdlController.gJoystick){
         return;
     }
 
-    sdlController.deviceId = deviceId;
     printf("Joysticks connected: %d\n", SDL_NumJoysticks());
 
     // Open game controller and check if it supports rumble
     sdlController.gGameController = SDL_GameControllerOpen(deviceId);
     if (sdlController.gGameController) {
-
         // Check if joystick supports Rumble
        if (!SDL_GameControllerHasRumble(sdlController.gGameController)) {
             printf("Warning: Game controller does not have rumble! SDL Error: %s\n", SDL_GetError());
@@ -200,7 +184,39 @@ void CloseController(){
         SDL_JoystickClose(sdlController.gJoystick);
         sdlController.gJoystick = NULL;
     }
-    sdlController.deviceId = -1;
+}
+
+
+void RescanAndOpenFirstConnectedDevice(){
+
+    if (sdlController.gGameController && !SDL_GameControllerGetAttached (sdlController.gGameController)){
+        CloseController();
+    }
+
+    if (sdlController.gJoystick && !SDL_JoystickGetAttached(sdlController.gJoystick)){
+        CloseController();
+    }
+
+    const int numJoysticks = SDL_NumJoysticks();
+
+    for (int joyIdx = 0; joyIdx < numJoysticks; ++joyIdx) {
+        // at first open only game controllers
+        if (SDL_IsGameController(joyIdx)) {
+            OpenController(joyIdx);
+
+            if (sdlController.gGameController || sdlController.gJoystick){
+                return;
+            }
+        }
+    }
+
+    for (int joyIdx = 0; joyIdx < numJoysticks; ++joyIdx) {
+        OpenController(joyIdx);
+
+        if (sdlController.gGameController || sdlController.gJoystick){
+            return;
+        }
+    }
 }
 
 void SDL_InitVideo(void)
@@ -329,7 +345,6 @@ void SDL_InitVideo(void)
 	sdlController.deadZoneRight = 25;
 
 	if (SDL_NumJoysticks() < 1) {
-        sdlController.deviceId = -1;
 		printf("Warning: No joysticks connected!\n");
 	}
 	else {
@@ -601,30 +616,30 @@ int SDL_GameControllerGetButtonID(void)
 }
 
 char buttonNames[][16] = {
-	"X",
-	"Circle",
-	"Square",
-	"Triangle",
-	"Select",
-	"Start",
-	"Left Stick",
-	"Right Stick",
-	"L",
-	"R",
-	"D-Pad Up",
-	"D-Pad Down",
-	"D-Pad Left",
-	"D-Pad Right",
-	"L-Stick Up",
-	"L-Stick Down",
-	"L-Stick Left",
-	"L-Stick Right",
-	"R-Stick Up",
-	"R-Stick Down",
-	"R-Stick Left",
-	"R-Stick Right",
-	"Left Trigger",
-	"Right Trigger"
+        "Gamepad A",
+        "Gamepad B",
+        "Gamepad X",
+        "Gamepad Y",
+        "Back",
+        "Start",
+        "Left Stick",
+        "Right Stick",
+        "Left Bumper",
+        "Right Bumper",
+        "D-Pad Up",
+        "D-Pad Down",
+        "D-Pad Left",
+        "D-Pad Right",
+        "L-Stick Up",
+        "L-Stick Down",
+        "L-Stick Left",
+        "L-Stick Right",
+        "R-Stick Up",
+        "R-Stick Down",
+        "R-Stick Left",
+        "R-Stick Right",
+        "Left Trigger",
+        "Right Trigger"
 };
 
 char *SDL_GameControllerGetNameButton(int id) {
@@ -650,22 +665,22 @@ int SDL_JoystickGetButtonID(void)
 		return CONTROLLER_BUTTON_B;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 2)) {
-		return CONTROLLER_BUTTON_A;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 3)) {
 		return CONTROLLER_BUTTON_Y;
 	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 4)) {
-		return CONTROLLER_BUTTON_LEFT_TRIGGER;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 5)) {
-		return CONTROLLER_BUTTON_RIGHT_TRIGGER;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 6)) {
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 3)) {
 		return CONTROLLER_BUTTON_BACK;
 	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 4)) {
+		return SDL_CONTROLLER_BUTTON_GUIDE;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 5)) {
+		return SDL_CONTROLLER_BUTTON_START;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 6)) {
+		return CONTROLLER_BUTTON_LEFT_STICK;
+	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 7)) {
-		return CONTROLLER_BUTTON_START;
+		return CONTROLLER_BUTTON_RIGHT_STICK;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 8)) {
 		return SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
@@ -680,22 +695,22 @@ int SDL_JoystickGetButtonID(void)
 		int16_t yVal = SDL_JoystickGetAxis(sdlController.gJoystick, 1);
 		// Below of dead zone
 		if (yVal < -deadZoneLeft) {
-			return (numAxes <= 2) ? CONTROLLER_BUTTON_DPAD_UP : CONTROLLER_BUTTON_LAXIS_UP;
+            return CONTROLLER_BUTTON_DPAD_UP;
 		}
 		// Above of dead zone
 		else if (yVal > deadZoneLeft) {
-			return (numAxes <= 2) ? CONTROLLER_BUTTON_DPAD_DOWN : CONTROLLER_BUTTON_LAXIS_DOWN;
+            return CONTROLLER_BUTTON_DPAD_DOWN;
 		}
 
 		// X axis motion
 		int16_t xVal = SDL_JoystickGetAxis(sdlController.gJoystick, 0);
 		// Left of dead zone
 		if (xVal < -deadZoneLeft) {
-			return (numAxes <= 2) ? CONTROLLER_BUTTON_DPAD_LEFT : CONTROLLER_BUTTON_LAXIS_LEFT;
+            return CONTROLLER_BUTTON_DPAD_LEFT;
 		}
 		// Right of dead zone
 		else if (xVal > deadZoneLeft) {
-			return (numAxes <= 2) ? CONTROLLER_BUTTON_DPAD_RIGHT : CONTROLLER_BUTTON_LAXIS_RIGHT;
+            return CONTROLLER_BUTTON_DPAD_RIGHT;
 		}
 
 		// Y axis motion
