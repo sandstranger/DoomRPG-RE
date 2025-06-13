@@ -199,9 +199,20 @@ void RescanAndOpenFirstConnectedDevice(){
 
     const int numJoysticks = SDL_NumJoysticks();
 
-    for (int joyIdx = 0; joyIdx < numJoysticks; ++joyIdx) {
+    for (int joyIdx = numJoysticks - 1; joyIdx >= 0; --joyIdx) {
         // at first open only game controllers
         if (SDL_IsGameController(joyIdx)) {
+
+            const char* name = SDL_GameControllerNameForIndex(joyIdx);
+            if (name && (
+                    strstr(name, "remote") ||
+                    strstr(name, "AOSP") ||
+                    strstr(name, "TV") ||
+                    strstr(name, "input"))
+                    ) {
+                continue; // Пропускаем пульт
+            }
+
             OpenController(joyIdx);
 
             if (sdlController.gGameController || sdlController.gJoystick){
@@ -210,7 +221,18 @@ void RescanAndOpenFirstConnectedDevice(){
         }
     }
 
-    for (int joyIdx = 0; joyIdx < numJoysticks; ++joyIdx) {
+    for (int joyIdx = numJoysticks - 1; joyIdx >= 0; --joyIdx) {
+
+        const char* name = SDL_JoystickNameForIndex(joyIdx);
+        if (name && (
+                strstr(name, "remote") ||
+                strstr(name, "AOSP") ||
+                strstr(name, "TV") ||
+                strstr(name, "input"))
+                ) {
+            continue; // Пропускаем пульт
+        }
+
         OpenController(joyIdx);
 
         if (sdlController.gGameController || sdlController.gJoystick){
