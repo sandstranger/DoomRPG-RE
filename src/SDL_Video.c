@@ -665,28 +665,31 @@ int SDL_JoystickGetButtonID(void)
 		return CONTROLLER_BUTTON_B;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 2)) {
-		return CONTROLLER_BUTTON_Y;
+		return CONTROLLER_BUTTON_X;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 3)) {
-		return CONTROLLER_BUTTON_BACK;
+		return CONTROLLER_BUTTON_Y;
 	}
 	else if (SDL_JoystickGetButton(sdlController.gJoystick, 4)) {
-		return SDL_CONTROLLER_BUTTON_GUIDE;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 5)) {
-		return SDL_CONTROLLER_BUTTON_START;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 6)) {
-		return CONTROLLER_BUTTON_LEFT_STICK;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 7)) {
-		return CONTROLLER_BUTTON_RIGHT_STICK;
-	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 8)) {
 		return SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
 	}
-	else if (SDL_JoystickGetButton(sdlController.gJoystick, 9)) {
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 5)) {
 		return SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 6)) {
+		return CONTROLLER_BUTTON_BACK;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 7)) {
+		return CONTROLLER_BUTTON_START;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 8)) {
+		return SDL_CONTROLLER_BUTTON_LEFTSTICK;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 9)) {
+		return SDL_CONTROLLER_BUTTON_RIGHTSTICK;
+	}
+	else if (SDL_JoystickGetButton(sdlController.gJoystick, 10)) {
+		return SDL_CONTROLLER_BUTTON_GUIDE;
 	}
 	else {
 		numAxes = SDL_JoystickNumAxes(sdlController.gJoystick);
