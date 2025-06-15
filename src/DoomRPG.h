@@ -1,6 +1,10 @@
 #ifndef DOOMRPG_H__
 #define DOOMRPG_H__
 
+#ifdef ANDROID
+#include "SDL_ttf.h"
+#endif
+
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
 typedef enum { false, true } boolean;
@@ -278,6 +282,9 @@ void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, const Uint8* state);
 int DoomRPG_Init(void);
 void DoomRPG_FreeAppData(DoomRPG_t* doomrpg);
 
+#ifdef ANDROID
+TTF_Font* DoomRPG_LoadTTFFont(const char* fontPath, int size);
+#endif
 void DoomRPG_createImage(DoomRPG_t* doomrpg, const char* resourceName, boolean isTransparentMask, Image_t* img);
 void DoomRPG_createImageBerserkColor(DoomRPG_t* doomrpg, const char* resourceName, boolean isTransparentMask, Image_t* img);
 void DoomRPG_freeImage(DoomRPG_t* doomrpg, Image_t* image);

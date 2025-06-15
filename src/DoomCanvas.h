@@ -2,6 +2,15 @@
 #define DOOMCANVAS_H__
 
 #include "Render.h"
+#ifdef ANDROID
+#include "SDL_ttf.h"
+#define LETTER_SPACING_NORMAL  1
+#define LETTER_SPACING_LARGE   2
+#define OUTLINE_THICKNESS     1
+#define GLYPH_CACHE_SIZE 1024    // Размер хеш-таблицы
+#define GLYPH_CACHE_MAX_SIZE 758 // Максимальное количество элементов
+#endif
+
 
 struct Image_s;
 struct Entity_s;
@@ -17,8 +26,38 @@ struct Hud_s;
 struct MenuSystem_s;
 struct ParticleSystem_s;
 
+#ifdef ANDROID
+typedef struct GlyphCacheItem {
+    Uint32 codePoint;
+    SDL_Color color;
+    TTF_Font* font;
+    SDL_Texture* texture;
+    int w, h;
+    int advance;
+
+    // Для LRU-списка
+    struct GlyphCacheItem* lru_prev;
+    struct GlyphCacheItem* lru_next;
+
+    // Для хеш-таблицы
+    struct GlyphCacheItem* hash_next;
+} GlyphCacheItem;
+
+typedef struct {
+    GlyphCacheItem* buckets[GLYPH_CACHE_SIZE];
+    GlyphCacheItem* lru_head; // Самый недавно использованный
+    GlyphCacheItem* lru_tail; // Самый давно не использованный
+    int count;
+} GlyphCache;
+#endif
+
 typedef struct DoomCanvas_s
 {
+#ifdef ANDROID
+    GlyphCache* glyphCache;
+    TTF_Font* normalFont;
+    TTF_Font* largeFont;
+#endif
 	int memory;
 	struct Image_s imgFont;
 	struct Image_s imgLargerFont;

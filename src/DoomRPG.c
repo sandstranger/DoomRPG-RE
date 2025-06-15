@@ -19,7 +19,6 @@
 #include "SDL_Video.h"
 #include "Z_Zip.h"
 
-
 DoomRPG_t* doomRpg = NULL;
 
 keyMapping_t keyMapping[12];
@@ -473,8 +472,37 @@ void DoomRPG_setBind(DoomRPG_t* doomrpg, int mouse_Button, const Uint8* state) {
 	}
 }
 
+#ifdef ANDROID
+TTF_Font* DoomRPG_LoadTTFFont(const char* fontPath, int size) {
+    if (TTF_Init() == -1) {
+        SDL_Log("TTF_Init error: %s", TTF_GetError());
+        return NULL;
+    }
+
+    TTF_Font* font = TTF_OpenFont(fontPath, size);
+
+    if (!font) {
+        SDL_Log("Failed to load font: %s", TTF_GetError());
+    } else{
+      //  TTF_SetFontHinting(font, TTF_HINTING_MONO);
+        TTF_SetFontKerning(font, 1);
+    }
+    return font;
+}
+
+void DoomRPG_CloseTTFFont(TTF_Font* font) {
+    if (font) {
+        TTF_CloseFont(font);
+    }
+}
+#endif
+
 int DoomRPG_Init(void) // 0x3141C
 {
+#ifdef ANDROID
+    TTF_Init();
+#endif
+
 	int mem;
 	printf("DoomRpg_Init\n");
 
@@ -571,7 +599,6 @@ int DoomRPG_Init(void) // 0x3141C
 												//printf("player->memory %d\n", doomRpg->player->memory);
 												//printf("particleSystem->memory %d\n", doomRpg->particleSystem->memory);
 												//printf("combat->memory %d\n", doomRpg->combat->memory);
-
 												DoomCanvas_startup(doomRpg->doomCanvas);
 												ParticleSystem_startup(doomRpg->particleSystem);
 												MenuSystem_startup(doomRpg->menuSystem);
@@ -666,12 +693,22 @@ void DoomRPG_FreeAppData(DoomRPG_t* doomrpg)
 	doomrpg->render = NULL;
 
 	if (doomrpg->doomCanvas) {
+
+#ifdef ANDROID
+        DoomRPG_CloseTTFFont(doomrpg->doomCanvas->normalFont);
+        doomrpg->doomCanvas->normalFont = NULL;
+        DoomRPG_CloseTTFFont(doomrpg->doomCanvas->largeFont);
+        doomrpg->doomCanvas->largeFont = NULL;
+        TTF_Quit();
+#endif
+
 		DoomCanvas_free(doomrpg->doomCanvas, true);
 	}
 	doomrpg->doomCanvas = NULL;
 
 	SDL_free(doomrpg);
 }
+
 
 void DoomRPG_createImage(DoomRPG_t* doomrpg, const char* resourceName, boolean isTransparentMask, Image_t* img)
 {

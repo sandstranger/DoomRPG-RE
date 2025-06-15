@@ -140,8 +140,31 @@ DoomCanvas_t* DoomCanvas_init(DoomCanvas_t* doomCanvas, DoomRPG_t* doomRpg) // 0
 	return doomCanvas;
 }
 
+#ifdef ANDROID
+void DoomCanvas_DestroyGlyphCache(DoomCanvas_t* doomCanvas) {
+    if (!doomCanvas || !doomCanvas->glyphCache) return;
+
+    GlyphCache* cache = doomCanvas->glyphCache;
+
+    // Удаляем все элементы через LRU-список
+    GlyphCacheItem* item = cache->lru_head;
+    while (item) {
+        GlyphCacheItem* next = item->lru_next;
+        if (item->texture) SDL_DestroyTexture(item->texture);
+        SDL_free(item);
+        item = next;
+    }
+
+    // Сбрасываем структуру кэша
+    SDL_memset(cache, 0, sizeof(GlyphCache));
+}
+#endif
+
 void DoomCanvas_free(DoomCanvas_t* doomCanvas, boolean freePtr)
 {
+#ifdef ANDROID
+    DoomCanvas_DestroyGlyphCache(doomCanvas);
+#endif
 	DoomRPG_freeImage(doomCanvas->doomRpg, &doomCanvas->imgFont);
 	DoomRPG_freeImage(doomCanvas->doomRpg, &doomCanvas->imgLargerFont);
 	DoomRPG_freeImage(doomCanvas->doomRpg, &doomCanvas->imgLegals);
@@ -1438,8 +1461,425 @@ void DoomCanvas_drawString2(DoomCanvas_t* doomCanvas, char* text, int x, int y, 
 	DoomCanvas_drawFont(doomCanvas, text, x, y, flags, 0, (doomCanvas->time - param_6) / 25, 0);
 }
 
+#ifdef ANDROID
+// Вспомогательная функция для преобразования UTF-8 в Unicode
+static Uint32 utf8_to_ucs4(const char *utf8, int *advance) {
+    Uint32 ch = 0;
+    unsigned char c = (unsigned char)utf8[0];
+    if ((c & 0x80) == 0x00) {
+        *advance = 1;
+        return c;
+    } else if ((c & 0xE0) == 0xC0) {
+        *advance = 2;
+        ch = (c & 0x1F) << 6;
+        c = (unsigned char)utf8[1];
+        if (c == 0) return 0;
+        ch |= (c & 0x3F);
+    } else if ((c & 0xF0) == 0xE0) {
+        *advance = 3;
+        ch = (c & 0x0F) << 12;
+        c = (unsigned char)utf8[1];
+        if (c == 0) return 0;
+        ch |= (c & 0x3F) << 6;
+        c = (unsigned char)utf8[2];
+        if (c == 0) return 0;
+        ch |= (c & 0x3F);
+    } else if ((c & 0xF8) == 0xF0) {
+        *advance = 4;
+        ch = (c & 0x07) << 18;
+        c = (unsigned char)utf8[1];
+        if (c == 0) return 0;
+        ch |= (c & 0x3F) << 12;
+        c = (unsigned char)utf8[2];
+        if (c == 0) return 0;
+        ch |= (c & 0x3F) << 6;
+        c = (unsigned char)utf8[3];
+        if (c == 0) return 0;
+        ch |= (c & 0x3F);
+    } else {
+        *advance = 1;
+        return 0;
+    }
+    return ch;
+}
+
+static void lru_touch(GlyphCache* cache, GlyphCacheItem* item) {
+    if (item == cache->lru_head) return;
+
+    // Удаляем элемент из текущей позиции
+    if (item->lru_prev) item->lru_prev->lru_next = item->lru_next;
+    if (item->lru_next) item->lru_next->lru_prev = item->lru_prev;
+
+    if (item == cache->lru_tail) cache->lru_tail = item->lru_prev;
+
+    // Вставляем в начало
+    item->lru_next = cache->lru_head;
+    item->lru_prev = NULL;
+
+    if (cache->lru_head) cache->lru_head->lru_prev = item;
+    cache->lru_head = item;
+
+    if (!cache->lru_tail) cache->lru_tail = item;
+}
+
+// Удаление самого старого элемента
+static void lru_evict(GlyphCache* cache) {
+    if (!cache->lru_tail) return;
+
+    GlyphCacheItem* item = cache->lru_tail;
+
+    // Удаляем из хеш-таблицы
+    size_t hash = (size_t)item->codePoint;
+    hash = (hash * 31) + item->color.r;
+    hash = (hash * 31) + item->color.g;
+    hash = (hash * 31) + item->color.b;
+    hash = (hash * 31) + (size_t)(uintptr_t)item->font;
+    unsigned int bucket = hash % GLYPH_CACHE_SIZE;
+
+    GlyphCacheItem** p = &cache->buckets[bucket];
+    while (*p) {
+        if (*p == item) {
+            *p = item->hash_next;
+            break;
+        }
+        p = &(*p)->hash_next;
+    }
+
+    // Удаляем из LRU-списка
+    if (item->lru_prev) item->lru_prev->lru_next = NULL;
+    cache->lru_tail = item->lru_prev;
+    if (cache->lru_head == item) cache->lru_head = NULL;
+
+    // Освобождаем ресурсы
+    if (item->texture) SDL_DestroyTexture(item->texture);
+    SDL_free(item);
+    cache->count--;
+}
+
+static GlyphCacheItem* GlyphCache_Find(DoomCanvas_t* doomCanvas,
+                                       Uint32 codePoint,
+                                       SDL_Color color,
+                                       TTF_Font* font)
+{
+    if (!doomCanvas || !doomCanvas->glyphCache || !font) return NULL;
+
+    // Вычисление хеша (как раньше)
+    size_t hash = (size_t)codePoint;
+    hash = (hash * 31) + color.r;
+    hash = (hash * 31) + color.g;
+    hash = (hash * 31) + color.b;
+    hash = (hash * 31) + (size_t)(uintptr_t)font;
+    unsigned int bucket = hash % GLYPH_CACHE_SIZE;
+
+    GlyphCacheItem* item = doomCanvas->glyphCache->buckets[bucket];
+    while (item) {
+        if (item->codePoint == codePoint &&
+            item->color.r == color.r &&
+            item->color.g == color.g &&
+            item->color.b == color.b &&
+            item->font == font)
+        {
+            // Обновляем позицию в LRU
+            lru_touch(doomCanvas->glyphCache, item);
+            return item;
+        }
+        item = item->hash_next;
+    }
+    return NULL;
+}
+
+static void GlyphCache_Add(DoomCanvas_t* doomCanvas,
+                           Uint32 codePoint,
+                           SDL_Color color,
+                           TTF_Font* font,
+                           SDL_Texture* texture,
+                           int w, int h, int advance)
+{
+    if (!doomCanvas || !doomCanvas->glyphCache || !font || !texture) return;
+
+    GlyphCache* cache = doomCanvas->glyphCache;
+
+    // Вытесняем старые элементы, если достигли лимита
+    while (cache->count >= GLYPH_CACHE_MAX_SIZE) {
+        lru_evict(cache);
+    }
+
+    // Создаем новый элемент
+    GlyphCacheItem* item = (GlyphCacheItem*)SDL_malloc(sizeof(GlyphCacheItem));
+    if (!item) return;
+
+    // Заполняем данные
+    item->codePoint = codePoint;
+    item->color = color;
+    item->font = font;
+    item->texture = texture;
+    item->w = w;
+    item->h = h;
+    item->advance = advance;
+
+    // Добавляем в хеш-таблицу
+    size_t hash = (size_t)codePoint;
+    hash = (hash * 31) + color.r;
+    hash = (hash * 31) + color.g;
+    hash = (hash * 31) + color.b;
+    hash = (hash * 31) + (size_t)(uintptr_t)font;
+    unsigned int bucket = hash % GLYPH_CACHE_SIZE;
+
+    item->hash_next = cache->buckets[bucket];
+    cache->buckets[bucket] = item;
+
+    // Добавляем в начало LRU-списка
+    item->lru_prev = NULL;
+    item->lru_next = cache->lru_head;
+    if (cache->lru_head) cache->lru_head->lru_prev = item;
+    cache->lru_head = item;
+    if (!cache->lru_tail) cache->lru_tail = item;
+
+    cache->count++;
+}
+
+
+static SDL_Texture* CreateGlyphWithOutline(TTF_Font* font, Uint32 codePoint, SDL_Color color, int outline, int* outAdvance) {
+    char utf8Char[5] = {0};
+    int len = 0;
+    if (codePoint <= 0x7F) {
+        utf8Char[0] = (char)codePoint;
+        len = 1;
+    } else if (codePoint <= 0x7FF) {
+        utf8Char[0] = 0xC0 | (codePoint >> 6);
+        utf8Char[1] = 0x80 | (codePoint & 0x3F);
+        len = 2;
+    } else if (codePoint <= 0xFFFF) {
+        utf8Char[0] = 0xE0 | (codePoint >> 12);
+        utf8Char[1] = 0x80 | ((codePoint >> 6) & 0x3F);
+        utf8Char[2] = 0x80 | (codePoint & 0x3F);
+        len = 3;
+    } else if (codePoint <= 0x10FFFF) {
+        utf8Char[0] = 0xF0 | (codePoint >> 18);
+        utf8Char[1] = 0x80 | ((codePoint >> 12) & 0x3F);
+        utf8Char[2] = 0x80 | ((codePoint >> 6) & 0x3F);
+        utf8Char[3] = 0x80 | (codePoint & 0x3F);
+        len = 4;
+    }
+
+    SDL_Surface* glyphSurf = TTF_RenderUTF8_Solid(font, utf8Char, color);
+    if (!glyphSurf) return NULL;
+
+    *outAdvance = glyphSurf->w;
+    SDL_Surface* outlineSurf = TTF_RenderUTF8_Solid(font, utf8Char, (SDL_Color){0, 0, 0, 255});
+    if (!outlineSurf) {
+        SDL_FreeSurface(glyphSurf);
+        return NULL;
+    }
+
+    SDL_Surface* finalSurf = SDL_CreateRGBSurfaceWithFormat(0,
+                                                            glyphSurf->w + 2*outline,
+                                                            glyphSurf->h + 2*outline,
+                                                            32,
+                                                            SDL_PIXELFORMAT_RGBA32);
+
+    if (!finalSurf) {
+        SDL_FreeSurface(glyphSurf);
+        SDL_FreeSurface(outlineSurf);
+        return NULL;
+    }
+
+    SDL_FillRect(finalSurf, NULL, SDL_MapRGBA(finalSurf->format, 0, 0, 0, 0));
+
+    // Рендерим обводку
+    SDL_Rect dest = {0, 0, outlineSurf->w, outlineSurf->h};
+    for (int oy = -outline; oy <= outline; oy++) {
+        for (int ox = -outline; ox <= outline; ox++) {
+            if (ox == 0 && oy == 0) continue;
+            dest.x = outline + ox;
+            dest.y = outline + oy;
+            SDL_BlitSurface(outlineSurf, NULL, finalSurf, &dest);
+        }
+    }
+
+    // Рендерим основной символ
+    dest.x = outline;
+    dest.y = outline;
+    SDL_BlitSurface(glyphSurf, NULL, finalSurf, &dest);
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(sdlVideo.renderer, finalSurf);
+    SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
+
+    SDL_FreeSurface(glyphSurf);
+    SDL_FreeSurface(outlineSurf);
+    SDL_FreeSurface(finalSurf);
+
+    return texture;
+}
+
+void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
+                            char* text,
+                            int x,
+                            int y,
+                            int flags,
+                            int strBeg,
+                            int strEnd,
+                            boolean isLargerFont)
+{
+
+    // Проверка указателей в самом начале
+    if (!doomCanvas) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: doomCanvas is NULL!");
+        return;
+    }
+
+    if (!text) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: text is NULL!");
+        return;
+    }
+
+    if (strEnd == 0) return;
+
+    TTF_Font* fontTTF = isLargerFont ? doomCanvas->largeFont : doomCanvas->normalFont;
+    if (!fontTTF) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: Font is NULL!");
+        return;
+    }
+
+    // Инициализация кэша с дополнительными проверками
+    if (!doomCanvas->glyphCache) {
+        SDL_Log("Initializing glyph cache...");
+        doomCanvas->glyphCache = (GlyphCache*)SDL_calloc(1, sizeof(GlyphCache));
+
+        if (!doomCanvas->glyphCache) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: Failed to allocate glyph cache!");
+            return;
+        }
+
+        // Явная инициализация всех корзин
+        for (int i = 0; i < GLYPH_CACHE_SIZE; i++) {
+            doomCanvas->glyphCache->buckets[i] = NULL;
+        }
+
+        SDL_Log("Glyph cache initialized successfully");
+    }
+
+
+    SDL_Color textColor = {
+            (doomCanvas->fontColor & 0x00FF0000) >> 16,
+            (doomCanvas->fontColor & 0x0000FF00) >> 8,
+            (doomCanvas->fontColor & 0x000000FF),
+            255
+    };
+
+    int totalLen = (int)SDL_strlen(text);
+    int len = totalLen - strBeg;
+    if (strEnd >= 0 && len > strEnd) len = strEnd;
+    if (len <= 0) return;
+
+    char* buf = (char*)malloc(len + 1);
+    memcpy(buf, text + strBeg, len);
+    buf[len] = '\0';
+
+    char* line = buf;
+    int letterSpacing = isLargerFont ? LETTER_SPACING_LARGE : LETTER_SPACING_NORMAL;
+    int spaceWidth;
+    TTF_GlyphMetrics32(fontTTF, ' ', NULL, NULL, NULL, NULL, &spaceWidth);
+
+    while (line) {
+        char* nextLine = strchr(line, '\n');
+        if (nextLine) *nextLine++ = '\0';
+
+        // Предварительный расчет размеров строки
+        int textW = 0;
+        int charCount = 0;
+        const char* p = line;
+        while (*p) {
+            int charLen;
+            Uint32 codePoint = utf8_to_ucs4(p, &charLen);
+            p += charLen;
+
+            if (codePoint != 0 && codePoint <= 0xFFFF && TTF_GlyphIsProvided(fontTTF, (Uint16)codePoint)) {
+                int advance;
+                if (TTF_GlyphMetrics32(fontTTF, (Uint16)codePoint, NULL, NULL, NULL, NULL, &advance) == 0) {
+                    textW += advance;
+                } else {
+                    textW += spaceWidth;
+                }
+            } else {
+                textW += spaceWidth;
+            }
+            charCount++;
+        }
+
+        if (charCount > 0) {
+            textW += (charCount - 1) * letterSpacing;
+        }
+
+        int textH;
+        TTF_SizeUTF8(fontTTF, "A", NULL, &textH); // Быстрая оценка высоты
+
+        // Выравнивание
+        int xpos = x;
+        if (flags & 8) xpos = x - textW;
+        else if (flags & 16) xpos = x - (textW / 2);
+
+        int ypos = y;
+        if (flags & 2) ypos = y - textH;
+        else if (flags & 32) ypos = y - (textH / 2);
+
+        // Рендеринг строки
+        int cx = isLargerFont ? xpos : xpos + 2;
+        p = line;
+        while (*p) {
+            int charLen;
+            Uint32 codePoint = utf8_to_ucs4(p, &charLen);
+            p += charLen;
+
+            // Пропуск неподдерживаемых символов
+            if (codePoint == 0 || codePoint > 0xFFFF || !TTF_GlyphIsProvided(fontTTF, (Uint16)codePoint)) {
+                cx += spaceWidth + letterSpacing;
+                continue;
+            }
+
+            // Поиск в кэше
+            GlyphCacheItem* item = GlyphCache_Find(doomCanvas, codePoint, textColor, fontTTF);
+
+            // Создание нового глифа при необходимости
+            if (!item) {
+                int advance;
+                SDL_Texture* tex = CreateGlyphWithOutline(fontTTF, codePoint, textColor, OUTLINE_THICKNESS, &advance);
+                SDL_SetTextureScaleMode(tex, SDL_ScaleModeNearest); // Без интерполяции
+                if (tex) {
+                    int w, h;
+                    SDL_QueryTexture(tex, NULL, NULL, &w, &h);
+                    GlyphCache_Add(doomCanvas, codePoint, textColor, fontTTF, tex, w, h, advance);
+                    item = GlyphCache_Find(doomCanvas, codePoint, textColor, fontTTF);
+                }
+            }
+
+            if (item) {
+                SDL_Rect dst = {
+                        cx - OUTLINE_THICKNESS,
+                        ypos - OUTLINE_THICKNESS,
+                        item->w,
+                        item->h
+                };
+                SDL_RenderCopy(sdlVideo.renderer, item->texture, NULL, &dst);
+                cx += item->advance + letterSpacing;
+            } else {
+                cx += spaceWidth + letterSpacing;
+            }
+        }
+
+        y += textH + 2; // Межстрочный интервал
+        line = nextLine;
+    }
+
+    free(buf);
+}
+#endif
+
 void DoomCanvas_drawFont(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int strBeg, int strEnd, boolean isLargerFont)
 {
+    DoomCanvas_drawFontTTF(doomCanvas, text, x, y, flags, strBeg, strEnd, isLargerFont);
+    return;
+
 	Image_t* imgFont;
 	int iVar4, width, height, len, xpos, i;
 	unsigned int c;
@@ -1551,7 +1991,7 @@ void DoomCanvas_sorryState(DoomCanvas_t* doomCanvas)
 {
 	DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
 	DoomRPG_fillRect(doomCanvas->doomRpg, 0, 0, doomCanvas->displayRect.w, doomCanvas->displayRect.h);
-	
+
 	DoomRPG_setClipTrue(doomCanvas->doomRpg, doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 128, 128);
 	DoomCanvas_scrollSpaceBG(doomCanvas);
 
@@ -1561,7 +2001,7 @@ void DoomCanvas_sorryState(DoomCanvas_t* doomCanvas)
 
 void DoomCanvas_finishMovement(DoomCanvas_t* doomCanvas)
 {
-	Game_executeTile(doomCanvas->game, doomCanvas->destX, doomCanvas->destY, 
+	Game_executeTile(doomCanvas->game, doomCanvas->destX, doomCanvas->destY,
 		doomCanvas->game->eventFlags[1] | DoomCanvas_flagForFacingDir(doomCanvas) | 0x400);
 
 	DoomCanvas_checkFacingEntity(doomCanvas);
@@ -2063,9 +2503,9 @@ void DoomCanvas_handlePlayingEvents(DoomCanvas_t* doomCanvas, int i)
 		int i, j;
 
 		if (!Game_executeTile(doomCanvas->game, doomCanvas->destX + doomCanvas->viewStepX, doomCanvas->destY + doomCanvas->viewStepY, 1280)) {
-			Game_trace(doomCanvas->game, 
-				doomCanvas->viewX, doomCanvas->viewY, 
-				doomCanvas->viewX + (8 * doomCanvas->viewStepX), 
+			Game_trace(doomCanvas->game,
+				doomCanvas->viewX, doomCanvas->viewY,
+				doomCanvas->viewX + (8 * doomCanvas->viewStepX),
 				doomCanvas->viewY + (8 * doomCanvas->viewStepY), NULL, 22151);
 
 			//printf("numTraceEntities %d\n", doomCanvas->game->numTraceEntities);
@@ -2077,7 +2517,7 @@ void DoomCanvas_handlePlayingEvents(DoomCanvas_t* doomCanvas, int i)
 			while (i < doomCanvas->game->numTraceEntities) {
 
 				traceEnt = doomCanvas->game->traceEntities[i];
-				if (traceEnt->def->eType != 14 && (traceEnt->info & 0x200000) == 0x0 && traceEnt->info != 0 && 
+				if (traceEnt->def->eType != 14 && (traceEnt->info & 0x200000) == 0x0 && traceEnt->info != 0 &&
 					(spr = &doomCanvas->render->mapSprites[(traceEnt->info & 0xFFFF) - 1])->x >> 6 == doomCanvas->viewX >> 6 && spr->y >> 6 == doomCanvas->viewY >> 6) {
 					fireWpn = false;
 					++i;
@@ -2184,7 +2624,7 @@ void DoomCanvas_loadEpilogueText(DoomCanvas_t* doomCanvas)
 
 	if (overall >= 80) {
 		strncpy(rank, "Master", sizeof(rank));
-		strncpy(doomCanvas->epilogueText[1], 
+		strncpy(doomCanvas->epilogueText[1],
 			"You have found\n"
 			"every secret and\n"
 			"killed every mon-\n"
@@ -2579,9 +3019,9 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 
 			DoomCanvas_updateView(doomCanvas);
 			applyBerserk = true;
-		} // <- Agregu� el corchete aqu�, ya que necesito que los gr�ficos se actualicen siempre en cada cuadro, 
+		} // <- Agregu� el corchete aqu�, ya que necesito que los gr�ficos se actualicen siempre en cada cuadro,
 		  //    sin que intervengan las actualizaciones del movimiento del jugador.
-		  // <- I added the bracket here as I need the graphics to always update on every frame, 
+		  // <- I added the bracket here as I need the graphics to always update on every frame,
 		  //    without player movement updates intervening.
 
 			DoomCanvas_drawRGB(doomCanvas);
@@ -2598,10 +3038,10 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 
 			DoomCanvas_drawRGB(doomCanvas);
 
-			// En el c�digo original esta funci�n est� en la funci�n "Hud_drawEffects", pero decid� moverla aqu�, 
+			// En el c�digo original esta funci�n est� en la funci�n "Hud_drawEffects", pero decid� moverla aqu�,
 			// esto evita que se superponga a otros objetos dibujados previamente.
-			// 
-			// In the original code this function is in the "Hud_drawEffects" function, but I decided to move it here, 
+			//
+			// In the original code this function is in the "Hud_drawEffects" function, but I decided to move it here,
 			// this prevents it from overlapping other previously drawn objects
 			{
 				if (doomCanvas->doomRpg->player->berserkerTics && applyBerserk) {
@@ -2753,7 +3193,7 @@ void DoomCanvas_renderOnlyState(DoomCanvas_t* doomCanvas)
 
 	doomCanvas->lastFrameTime = doomCanvas->time;
 	Render_render(doomCanvas->render, doomCanvas->viewX, doomCanvas->viewY, doomCanvas->viewZ, doomCanvas->viewAngle);
-	DoomCanvas_invalidateRectAndUpdateView(doomCanvas); 
+	DoomCanvas_invalidateRectAndUpdateView(doomCanvas);
 	DoomCanvas_drawRGB(doomCanvas);
 
 	if (doomCanvas->benchmarkString) {
@@ -3086,7 +3526,7 @@ void DoomCanvas_run(DoomCanvas_t* doomCanvas)
 	else {
 		DoomRPG_flushGraphics(doomCanvas->doomRpg);
 	}
-	
+
 	//}
 }
 
@@ -3270,8 +3710,23 @@ void DoomCanvas_updateViewTrue(DoomCanvas_t* doomCanvas)
 
 void DoomCanvas_startDialog(DoomCanvas_t* doomCanvas, char* text, boolean dialogBackSoftKey)
 {
-	DoomCanvas_setState(doomCanvas, ST_DIALOG);
-	DoomCanvas_prepareDialog(doomCanvas, text, dialogBackSoftKey);
+    size_t cpLen = strlen(text);  // длина без '\0'
+    char* utf8Text = SDL_iconv_string(
+            "UTF-8",    // dst
+            "CP1251",   // src
+            text,       // src buffer
+            cpLen       // src length
+    );
+    if (utf8Text) {
+        // utf8Text — новая C‑строка в UTF‑8, уже с '\0'
+        // …
+    } else {
+        SDL_Log("FAILAED");
+        // конвертация не удалась — оставляем оригинал
+        utf8Text = SDL_strdup(text);
+    }
+    DoomCanvas_setState(doomCanvas, ST_DIALOG);
+	DoomCanvas_prepareDialog(doomCanvas, utf8Text, dialogBackSoftKey);
 
 	if (dialogBackSoftKey) {
 		DoomCanvas_drawSoftKeys(doomCanvas, "Back", NULL);
@@ -3281,7 +3736,7 @@ void DoomCanvas_startDialog(DoomCanvas_t* doomCanvas, char* text, boolean dialog
 void DoomCanvas_startDialogPassword(DoomCanvas_t* doomCanvas, char* text)
 {
 	DoomCanvas_setState(doomCanvas, ST_DIALOGPASSWORD);
-	DoomCanvas_prepareDialog(doomCanvas, text, false);
+	//DoomCanvas_prepareDialog(doomCanvas, text, false);
 	doomCanvas->passCode[0] = '\0';
 	doomCanvas->passInput = '0';
 }
@@ -3490,6 +3945,9 @@ void DoomCanvas_startup(DoomCanvas_t* doomCanvas)
 
 	// DOOMRPG-SNDFXONLY
 	doomCanvas->sndFXOnly = false;
+
+    doomCanvas->normalFont = DoomRPG_LoadTTFFont("Silver.ttf", 18);
+    doomCanvas->largeFont = DoomRPG_LoadTTFFont("LanaPixel.ttf", 17);
 
 	DoomRPG_createImage(doomCanvas->doomRpg, "g.bmp", false, &doomCanvas->imgLegals);
 	DoomRPG_createImage(doomCanvas->doomRpg, "a.bmp", true, &doomCanvas->imgFont);
