@@ -1475,44 +1475,57 @@ void DoomCanvas_drawString2(DoomCanvas_t* doomCanvas, char* text, int x, int y, 
 }
 
 #ifdef ANDROID
-// Вспомогательная функция для преобразования UTF-8 в Unicode
 static Uint32 utf8_to_ucs4(const char *utf8, int *advance) {
+    const unsigned char *p = (const unsigned char *)utf8;
     Uint32 ch = 0;
-    unsigned char c = (unsigned char)utf8[0];
-    if ((c & 0x80) == 0x00) {
+
+    // Если достигнут конец строки
+    if (*p == 0) {
+        *advance = 0;
+        return 0;
+    }
+
+    // Обрабатываем ASCII символы
+    if (*p < 0x80) {
         *advance = 1;
-        return c;
-    } else if ((c & 0xE0) == 0xC0) {
-        *advance = 2;
-        ch = (c & 0x1F) << 6;
-        c = (unsigned char)utf8[1];
-        if (c == 0) return 0;
-        ch |= (c & 0x3F);
-    } else if ((c & 0xF0) == 0xE0) {
-        *advance = 3;
-        ch = (c & 0x0F) << 12;
-        c = (unsigned char)utf8[1];
-        if (c == 0) return 0;
-        ch |= (c & 0x3F) << 6;
-        c = (unsigned char)utf8[2];
-        if (c == 0) return 0;
-        ch |= (c & 0x3F);
-    } else if ((c & 0xF8) == 0xF0) {
-        *advance = 4;
-        ch = (c & 0x07) << 18;
-        c = (unsigned char)utf8[1];
-        if (c == 0) return 0;
-        ch |= (c & 0x3F) << 12;
-        c = (unsigned char)utf8[2];
-        if (c == 0) return 0;
-        ch |= (c & 0x3F) << 6;
-        c = (unsigned char)utf8[3];
-        if (c == 0) return 0;
-        ch |= (c & 0x3F);
-    } else {
+        return *p;
+    }
+
+    // Определяем длину последовательности
+    int len;
+    if ((*p & 0xE0) == 0xC0) len = 2;
+    else if ((*p & 0xF0) == 0xE0) len = 3;
+    else if ((*p & 0xF8) == 0xF0) len = 4;
+    else {
         *advance = 1;
         return 0;
     }
+
+    // Проверяем, что в строке достаточно байтов
+    for (int i = 1; i < len; i++) {
+        if (p[i] == 0 || (p[i] & 0xC0) != 0x80) {
+            *advance = 1;
+            return 0;
+        }
+    }
+
+    // Декодируем символ
+    switch (len) {
+        case 2:
+            ch = ((p[0] & 0x1F) << 6) | (p[1] & 0x3F);
+            if (ch < 0x80) ch = 0; // Overlong sequence
+            break;
+        case 3:
+            ch = ((p[0] & 0x0F) << 12) | ((p[1] & 0x3F) << 6) | (p[2] & 0x3F);
+            if (ch < 0x800) ch = 0; // Overlong sequence
+            break;
+        case 4:
+            ch = ((p[0] & 0x07) << 18) | ((p[1] & 0x3F) << 12) | ((p[2] & 0x3F) << 6) | (p[3] & 0x3F);
+            if (ch < 0x10000) ch = 0; // Overlong sequence
+            break;
+    }
+
+    *advance = len;
     return ch;
 }
 
@@ -1535,7 +1548,6 @@ static void lru_touch(GlyphCache* cache, GlyphCacheItem* item) {
     if (!cache->lru_tail) cache->lru_tail = item;
 }
 
-// Удаление самого старого элемента
 static void lru_evict(GlyphCache* cache) {
     if (!cache->lru_tail) return;
 
@@ -1559,12 +1571,19 @@ static void lru_evict(GlyphCache* cache) {
     }
 
     // Удаляем из LRU-списка
-    if (item->lru_prev) item->lru_prev->lru_next = NULL;
+    if (item->lru_prev) {
+        item->lru_prev->lru_next = NULL;
+    }
     cache->lru_tail = item->lru_prev;
-    if (cache->lru_head == item) cache->lru_head = NULL;
+
+    if (cache->lru_head == item) {
+        cache->lru_head = NULL;
+    }
 
     // Освобождаем ресурсы
-    if (item->texture) SDL_DestroyTexture(item->texture);
+    if (item->texture) {
+        SDL_DestroyTexture(item->texture);
+    }
     SDL_free(item);
     cache->count--;
 }
@@ -1576,7 +1595,7 @@ static GlyphCacheItem* GlyphCache_Find(DoomCanvas_t* doomCanvas,
 {
     if (!doomCanvas || !doomCanvas->glyphCache || !font) return NULL;
 
-    // Вычисление хеша (как раньше)
+    // Вычисление хеша с учетом шрифта
     size_t hash = (size_t)codePoint;
     hash = (hash * 31) + color.r;
     hash = (hash * 31) + color.g;
@@ -1600,6 +1619,7 @@ static GlyphCacheItem* GlyphCache_Find(DoomCanvas_t* doomCanvas,
     }
     return NULL;
 }
+
 
 static void GlyphCache_Add(DoomCanvas_t* doomCanvas,
                            Uint32 codePoint,
@@ -1725,6 +1745,8 @@ static SDL_Texture* CreateGlyphWithOutline(TTF_Font* font, Uint32 codePoint, SDL
     return texture;
 }
 
+
+// Полная функция рендеринга текста с исправлениями
 void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
                             char* text,
                             int x,
@@ -1734,15 +1756,9 @@ void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
                             int strEnd,
                             boolean isLargerFont)
 {
-
-    // Проверка указателей в самом начале
-    if (!doomCanvas) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: doomCanvas is NULL!");
-        return;
-    }
-
-    if (!text) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: text is NULL!");
+    // Проверка указателей
+    if (!doomCanvas || !text) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Invalid parameters in drawFontTTF");
         return;
     }
 
@@ -1750,28 +1766,28 @@ void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
 
     TTF_Font* fontTTF = isLargerFont ? doomCanvas->largeFont : doomCanvas->normalFont;
     if (!fontTTF) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: Font is NULL!");
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Font is NULL in drawFontTTF");
         return;
     }
 
-    // Инициализация кэша с дополнительными проверками
+    // Инициализация кэша
     if (!doomCanvas->glyphCache) {
-        SDL_Log("Initializing glyph cache...");
         doomCanvas->glyphCache = (GlyphCache*)SDL_calloc(1, sizeof(GlyphCache));
-
         if (!doomCanvas->glyphCache) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "drawFont4: Failed to allocate glyph cache!");
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate glyph cache");
             return;
         }
 
-        // Явная инициализация всех корзин
+        // Инициализация LRU списка
+        doomCanvas->glyphCache->lru_head = NULL;
+        doomCanvas->glyphCache->lru_tail = NULL;
+        doomCanvas->glyphCache->count = 0;
+
+        // Инициализация хеш-таблицы
         for (int i = 0; i < GLYPH_CACHE_SIZE; i++) {
             doomCanvas->glyphCache->buckets[i] = NULL;
         }
-
-        SDL_Log("Glyph cache initialized successfully");
     }
-
 
     SDL_Color textColor = {
             (doomCanvas->fontColor & 0x00FF0000) >> 16,
@@ -1785,29 +1801,49 @@ void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
     if (strEnd >= 0 && len > strEnd) len = strEnd;
     if (len <= 0) return;
 
-    char* buf = (char*)malloc(len + 1);
-    memcpy(buf, text + strBeg, len);
+    // Выделяем буфер для подстроки
+    char* buf = (char*)SDL_malloc(len + 1);
+    if (!buf) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory allocation failed");
+        return;
+    }
+    SDL_memcpy(buf, text + strBeg, len);
     buf[len] = '\0';
 
     char* line = buf;
     int letterSpacing = isLargerFont ? LETTER_SPACING_LARGE : LETTER_SPACING_NORMAL;
     int spaceWidth;
-    TTF_GlyphMetrics32(fontTTF, ' ', NULL, NULL, NULL, NULL, &spaceWidth);
+    if (TTF_GlyphMetrics32(fontTTF, ' ', NULL, NULL, NULL, NULL, &spaceWidth) != 0) {
+        // Если не удалось получить ширину пробела, используем эмпирическое значение
+        spaceWidth = 8;
+    }
 
     while (line) {
-        char* nextLine = strchr(line, '\n');
-        if (nextLine) *nextLine++ = '\0';
+        char* nextLine = SDL_strchr(line, '\n');
+        if (nextLine) {
+            *nextLine = '\0';
+            nextLine++;
+        }
 
-        // Предварительный расчет размеров строки
+        // Рассчитываем ширину строки
         int textW = 0;
         int charCount = 0;
         const char* p = line;
         while (*p) {
             int charLen;
             Uint32 codePoint = utf8_to_ucs4(p, &charLen);
+
+            // Если декодирование не удалось или символ не поддерживается
+            if (codePoint == 0 || charLen <= 0) {
+                textW += spaceWidth;
+                p++;
+                charCount++;
+                continue;
+            }
             p += charLen;
 
-            if (codePoint != 0 && codePoint <= 0xFFFF && TTF_GlyphIsProvided(fontTTF, (Uint16)codePoint)) {
+            // Проверяем поддержку символа шрифтом
+            if (codePoint <= 0xFFFF && TTF_GlyphIsProvided(fontTTF, (Uint16)codePoint)) {
                 int advance;
                 if (TTF_GlyphMetrics32(fontTTF, (Uint16)codePoint, NULL, NULL, NULL, NULL, &advance) == 0) {
                     textW += advance;
@@ -1820,72 +1856,93 @@ void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
             charCount++;
         }
 
+        // Добавляем межбуквенные интервалы
         if (charCount > 0) {
             textW += (charCount - 1) * letterSpacing;
         }
 
+        // Рассчитываем высоту строки
         int textH;
-        TTF_SizeUTF8(fontTTF, "A", NULL, &textH); // Быстрая оценка высоты
+        if (TTF_SizeUTF8(fontTTF, "A", NULL, &textH) != 0) {
+            textH = 16; // Значение по умолчанию
+        }
 
-        // Выравнивание
+        // Выравнивание по горизонтали
         int xpos = x;
-        if (flags & 8) xpos = x - textW;
-        else if (flags & 16) xpos = x - (textW / 2);
+        if (flags & 8) xpos = x - textW;      // Выравнивание по правому краю
+        else if (flags & 16) xpos = x - textW / 2; // Центрирование
 
+        // Выравнивание по вертикали
         int ypos = y;
-        if (flags & 2) ypos = y - textH;
-        else if (flags & 32) ypos = y - (textH / 2);
+        if (flags & 2) ypos = y - textH;      // Выравнивание по верхнему краю
+        else if (flags & 32) ypos = y - textH / 2; // Центрирование
 
-        // Рендеринг строки
+        // Рендеринг каждого символа
         int cx = isLargerFont ? xpos : xpos + 2;
         p = line;
         while (*p) {
             int charLen;
             Uint32 codePoint = utf8_to_ucs4(p, &charLen);
+
+            // Пропускаем недопустимые символы
+            if (codePoint == 0 || charLen <= 0) {
+                cx += spaceWidth + letterSpacing;
+                p++;
+                continue;
+            }
             p += charLen;
 
-            // Пропуск неподдерживаемых символов
-            if (codePoint == 0 || codePoint > 0xFFFF || !TTF_GlyphIsProvided(fontTTF, (Uint16)codePoint)) {
+            // Пропускаем неподдерживаемые символы
+            if (codePoint > 0xFFFF || !TTF_GlyphIsProvided(fontTTF, (Uint16)codePoint)) {
                 cx += spaceWidth + letterSpacing;
                 continue;
             }
 
-            // Поиск в кэше
+            // Ищем символ в кэше
             GlyphCacheItem* item = GlyphCache_Find(doomCanvas, codePoint, textColor, fontTTF);
 
-            // Создание нового глифа при необходимости
+            // Если не нашли, создаем новый глиф
             if (!item) {
                 int advance;
                 SDL_Texture* tex = CreateGlyphWithOutline(fontTTF, codePoint, textColor, OUTLINE_THICKNESS, &advance);
-                SDL_SetTextureScaleMode(tex, SDL_ScaleModeNearest); // Без интерполяции
                 if (tex) {
                     int w, h;
                     SDL_QueryTexture(tex, NULL, NULL, &w, &h);
                     GlyphCache_Add(doomCanvas, codePoint, textColor, fontTTF, tex, w, h, advance);
+
+                    // Повторно ищем только что добавленный глиф
                     item = GlyphCache_Find(doomCanvas, codePoint, textColor, fontTTF);
                 }
             }
 
-            if (item) {
+            // Рендерим глиф
+            if (item && item->texture) {
                 SDL_Rect dst = {
                         cx - OUTLINE_THICKNESS,
                         ypos - OUTLINE_THICKNESS,
                         item->w,
                         item->h
                 };
-                SDL_RenderCopy(sdlVideo.renderer, item->texture, NULL, &dst);
+
+                // Проверка валидности размеров
+                if (dst.w > 0 && dst.h > 0) {
+                    SDL_RenderCopy(sdlVideo.renderer, item->texture, NULL, &dst);
+                }
+
                 cx += item->advance + letterSpacing;
             } else {
                 cx += spaceWidth + letterSpacing;
             }
         }
 
-        y += textH + 2; // Межстрочный интервал
+        // Переходим к следующей строке
+        y += textH + 2;
         line = nextLine;
     }
 
-    free(buf);
+    SDL_free(buf);
 }
+
 #endif
 
 void DoomCanvas_drawFont(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int strBeg, int strEnd, boolean isLargerFont)
@@ -3723,23 +3780,8 @@ void DoomCanvas_updateViewTrue(DoomCanvas_t* doomCanvas)
 
 void DoomCanvas_startDialog(DoomCanvas_t* doomCanvas, char* text, boolean dialogBackSoftKey)
 {
-    size_t cpLen = strlen(text);  // длина без '\0'
-    char* utf8Text = SDL_iconv_string(
-            "UTF-8",    // dst
-            "CP1251",   // src
-            text,       // src buffer
-            cpLen       // src length
-    );
-    if (utf8Text) {
-        // utf8Text — новая C‑строка в UTF‑8, уже с '\0'
-        // …
-    } else {
-        SDL_Log("FAILAED");
-        // конвертация не удалась — оставляем оригинал
-        utf8Text = SDL_strdup(text);
-    }
     DoomCanvas_setState(doomCanvas, ST_DIALOG);
-	DoomCanvas_prepareDialog(doomCanvas, utf8Text, dialogBackSoftKey);
+	DoomCanvas_prepareDialog(doomCanvas, text, dialogBackSoftKey);
 
 	if (dialogBackSoftKey) {
 		DoomCanvas_drawSoftKeys(doomCanvas, "Back", NULL);
