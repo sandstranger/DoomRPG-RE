@@ -3946,8 +3946,12 @@ void DoomCanvas_startup(DoomCanvas_t* doomCanvas)
 	// DOOMRPG-SNDFXONLY
 	doomCanvas->sndFXOnly = false;
 
+
+#ifdef ANDROID
     doomCanvas->normalFont = DoomRPG_LoadTTFFont("Silver.ttf", 18);
-    doomCanvas->largeFont = DoomRPG_LoadTTFFont("LanaPixel.ttf", 17);
+    doomCanvas->largeFont = DoomRPG_LoadTTFFont("UnifontExMono.ttf", 16);
+    TTF_SetFontStyle(doomCanvas->largeFont , TTF_STYLE_BOLD);
+#endif
 
 	DoomRPG_createImage(doomCanvas->doomRpg, "g.bmp", false, &doomCanvas->imgLegals);
 	DoomRPG_createImage(doomCanvas->doomRpg, "a.bmp", true, &doomCanvas->imgFont);
