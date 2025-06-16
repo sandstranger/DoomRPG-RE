@@ -1211,54 +1211,26 @@ void DoomCanvas_drawStory(DoomCanvas_t* doomCanvas)
 	}
 }
 
-SDL_Texture* renderTargetTexture = NULL;
-int targetTextureW = 0;
-int targetTextureH = 0;
 
 void DoomCanvas_drawRGB(DoomCanvas_t* doomCanvas)
 {
-    if (doomCanvas->state != ST_CAST) {
-        if (doomCanvas->time < doomCanvas->shaketime) {
-            if (!doomCanvas->skipShakeX) {
-                doomCanvas->shakeX = (DoomRPG_randNextByte(&doomCanvas->doomRpg->random) %
-                                      (doomCanvas->shakeVal * 2)) - doomCanvas->shakeVal;
-            }
-            doomCanvas->shakeY = (DoomRPG_randNextByte(&doomCanvas->doomRpg->random) %
-                                  (doomCanvas->shakeVal * 2)) - doomCanvas->shakeVal;
-        } else {
-            doomCanvas->shakeX = 0;
-            doomCanvas->shakeY = 0;
-        }
+    if (doomCanvas->state != ST_CAST && doomCanvas->time < doomCanvas->shaketime) {
+        if (!doomCanvas->skipShakeX)
+            doomCanvas->shakeX = (DoomRPG_randNextByte(&doomCanvas->doomRpg->random) %
+                                  (doomCanvas->shakeVal*2)) - doomCanvas->shakeVal;
+        doomCanvas->shakeY = (DoomRPG_randNextByte(&doomCanvas->doomRpg->random) %
+                              (doomCanvas->shakeVal*2)) - doomCanvas->shakeVal;
     } else {
-        doomCanvas->shakeX = 0;
-        doomCanvas->shakeY = 0;
+        doomCanvas->shakeX = doomCanvas->shakeY = 0;
     }
 
-    const int screenW = doomCanvas->render->screenWidth;
-    const int screenH = doomCanvas->render->screenHeight;
+    const int vw = sdlVideo.rendererW;
+    const int vh = sdlVideo.rendererH;
+    const int sx = doomCanvas->render->screenX;
+    const int sy = doomCanvas->render->screenY;
+    const int sw = doomCanvas->render->screenWidth;
+    const int sh = doomCanvas->render->screenHeight;
 
-    if (!renderTargetTexture || screenW != targetTextureW || screenH != targetTextureH) {
-        if (renderTargetTexture) {
-            SDL_DestroyTexture(renderTargetTexture);
-        }
-
-        renderTargetTexture = SDL_CreateTexture(
-                sdlVideo.renderer,
-                SDL_PIXELFORMAT_RGBA8888,
-                SDL_TEXTUREACCESS_TARGET,
-                screenW,
-                screenH
-        );
-
-        targetTextureW = screenW;
-        targetTextureH = screenH;
-    }
-
-    // Рендерим во временную текстуру
-    SDL_SetRenderTarget(sdlVideo.renderer, renderTargetTexture);
-    SDL_RenderClear(sdlVideo.renderer);
-
-    // Обновляем основную текстуру
     SDL_UpdateTexture(
             doomCanvas->render->piDIB,
             NULL,
@@ -1266,21 +1238,43 @@ void DoomCanvas_drawRGB(DoomCanvas_t* doomCanvas)
             doomCanvas->render->pitch
     );
 
-    // Копируем основную текстуру во временную
-    SDL_RenderCopy(sdlVideo.renderer, doomCanvas->render->piDIB, NULL, NULL);
+    SDL_SetRenderDrawColor(sdlVideo.renderer, 0, 0, 0, 255);
+    SDL_RenderClear(sdlVideo.renderer);
 
-    // Восстанавливаем рендер таргет
-    SDL_SetRenderTarget(sdlVideo.renderer, NULL);
-
-    // Рендерим с учетом тряски
-    SDL_Rect dst_rect = {
-            .x = doomCanvas->render->screenX + doomCanvas->shakeX,
-            .y = doomCanvas->render->screenY + doomCanvas->shakeY,
-            .w = screenW,
-            .h = screenH
+    SDL_Rect srcRect = { sx, sy, sw, sh };
+    SDL_Rect dstRect = {
+            doomCanvas->render->screenX + doomCanvas->shakeX,
+            doomCanvas->render->screenY + doomCanvas->shakeY,
+            sw, sh
     };
 
-    SDL_RenderCopy(sdlVideo.renderer, renderTargetTexture, NULL, &dst_rect);
+    if (dstRect.x < 0) {
+        srcRect.x   -= dstRect.x;
+        srcRect.w   += dstRect.x;
+        dstRect.w   += dstRect.x;
+        dstRect.x    = 0;
+    }
+    if (dstRect.y < 0) {
+        srcRect.y   -= dstRect.y;
+        srcRect.h   += dstRect.y;
+        dstRect.h   += dstRect.y;
+        dstRect.y    = 0;
+    }
+    if (dstRect.x + dstRect.w > vw)
+        dstRect.w = vw - dstRect.x;
+    if (dstRect.y + dstRect.h > vh)
+        dstRect.h = vh - dstRect.y;
+    if (dstRect.w <= 0 || dstRect.h <= 0) return;
+
+    srcRect.w = dstRect.w;
+    srcRect.h = dstRect.h;
+
+    SDL_RenderCopy(
+            sdlVideo.renderer,
+            doomCanvas->render->piDIB,
+            &srcRect,
+            &dstRect
+    );
 }
 
 void DoomCanvas_drawImageSpecial(DoomCanvas_t* doomCanvas, Image_t* img, int xSrc, int ySrc, int width, int height, int param_7, int xDst, int yDst, int flags)
