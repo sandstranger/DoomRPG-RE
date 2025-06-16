@@ -243,8 +243,8 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 	DoomCanvas_t* doomCanvas;
 	MenuItem_t *mItem;
 	EntityDef_t* ent;
-	char textField[32]; // original 18
-	char textField2[16]; // original 8
+	char textField[128]; // original 18
+	char textField2[64]; // original 8
 
 	doomRpg = menuSystem->doomRpg;
 	doomCanvas = doomRpg->doomCanvas;

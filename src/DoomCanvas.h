@@ -108,7 +108,7 @@ typedef struct DoomCanvas_s
 	int shakeX;
 	int shakeY;
 	short dialogIndexes[1024];
-	char dialogBuffer[512];
+	char dialogBuffer[1024];
 	int dialogLineStartTime;
 	int dialogTypeLineIdx;
 	int numDialogLines;

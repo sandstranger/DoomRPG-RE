@@ -254,7 +254,7 @@ void Hud_drawEffects(Hud_t* hud)
 {
     DoomRPG_t* doomRpg;
     DoomCanvas_t* doomCanvas;
-    char str[8];
+    char str[32];
     int x, y, srcY;
 
     doomRpg = hud->doomRpg;
