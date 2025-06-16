@@ -253,6 +253,10 @@ typedef struct DoomRPG_s
 	char			errorStr[64];
 	boolean			closeApplet;
 	int				imageMemory;
+#ifdef ANDROID
+    boolean enableSDLTTF;
+    boolean enableMachineTextTranslation;
+#endif
 } DoomRPG_t;
 
 typedef struct Image_s

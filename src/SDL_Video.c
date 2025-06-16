@@ -251,13 +251,16 @@ void SDL_InitVideo(void)
 
 	// Default
 //	sdlVideo.fullScreen = false;
-	sdlVideo.vSync = false;
-	sdlVideo.integerScaling = true;
 #ifndef ANDROID
 	sdlVideo.resolutionIndex = 8;
     sdlVideo.displaySoftKeys = true;
+	sdlVideo.vSync = false;
+	sdlVideo.integerScaling = true;
 #else
     sdlVideo.displaySoftKeys = false;
+    sdlVideo.vSync = true;
+    sdlVideo.integerScaling = false;
+
     sdlVideoModes = generateVideoModes(atoi(getenv("SCREEN_WIDTH")),
                                              atoi(getenv("SCREEN_HEIGHT")),
                                              &generatedVideoModsCount, 1);

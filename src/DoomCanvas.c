@@ -1947,8 +1947,10 @@ void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
 
 void DoomCanvas_drawFont(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int strBeg, int strEnd, boolean isLargerFont)
 {
-    DoomCanvas_drawFontTTF(doomCanvas, text, x, y, flags, strBeg, strEnd, isLargerFont);
-    return;
+    if (doomCanvas->doomRpg->enableSDLTTF) {
+        DoomCanvas_drawFontTTF(doomCanvas, text, x, y, flags, strBeg, strEnd, isLargerFont);
+        return;
+    }
 
 	Image_t* imgFont;
 	int iVar4, width, height, len, xpos, i;
