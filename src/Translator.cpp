@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 #ifdef ANDROID
+#include "SDL_log.h"
 #include <jni.h>
 #include <string>
 #include <unordered_map>
