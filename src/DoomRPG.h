@@ -5,11 +5,19 @@
 #include "SDL_ttf.h"
 #endif
 
-#ifndef __BYTEBOOL__
-#define __BYTEBOOL__
-typedef enum { false, true } boolean;
-typedef unsigned char byte;
+#ifdef __cplusplus
+#ifndef BOOL_DEFINED
+#define BOOL_DEFINED
+typedef bool boolean;
 #endif
+#else
+#ifndef BOOL_DEFINED
+#define BOOL_DEFINED
+typedef enum { false, true } boolean;
+#endif
+#endif
+
+typedef unsigned char byte;
 
 #define MAXCHAR ((char)0x7f)
 #define MAXSHORT ((short)0x7fff)
