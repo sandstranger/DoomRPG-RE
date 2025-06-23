@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #ifndef DOOMRPG_H__
 #define DOOMRPG_H__
 
@@ -6,8 +5,11 @@
 #include "SDL_ttf.h"
 #endif
 
-typedef bool boolean;
+#ifndef __BYTEBOOL__
+#define __BYTEBOOL__
+typedef enum { false, true } boolean;
 typedef unsigned char byte;
+#endif
 
 #define MAXCHAR ((char)0x7f)
 #define MAXSHORT ((short)0x7fff)
