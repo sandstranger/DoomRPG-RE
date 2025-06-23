@@ -18,6 +18,7 @@
 #include "EntityDef.h"
 #include "Combat.h"
 #include "SDL_Video.h"
+#include "DoomTranslator.h"
 
 static char processing[] = "Processing...";
 static char justAMoment[] = "(Just a moment!)";
@@ -359,6 +360,7 @@ void DoomCanvas_closeDialog(DoomCanvas_t* doomCanvas)
 {
 	Sound_stopSounds(doomCanvas->doomRpg->sound);
 	doomCanvas->dialogBuffer[0] = '\0';
+    doomCanvas->originalDialogText[0] = '\0';
 	DoomCanvas_setState(doomCanvas, ST_PLAYING);
 	doomCanvas->hud->isUpdate = true;
 	doomCanvas->staleView = true;
@@ -439,6 +441,49 @@ void DoomCanvas_combatState(DoomCanvas_t* doomCanvas)
 	Hud_drawBottomBar(doomCanvas->doomRpg->hud);
 }
 
+void DoomCanvas_updateDialogBuffer(DoomCanvas_t* doomCanvas, const char* str,
+                                   boolean dialogBackSoftKey, boolean preparePassword)
+{
+    boolean needToUpdateDialogBuffer = strcmp(str, doomCanvas->dialogBuffer)!=0;
+
+    if (!needToUpdateDialogBuffer){
+        return;
+    }
+
+    int strLen, i, j;
+
+    i = 0;
+    j = 0;
+
+    doomCanvas->numDialogLines = 0;
+    strncpy(doomCanvas->dialogBuffer, str, sizeof(doomCanvas->dialogBuffer));
+
+    strLen = SDL_strlen(doomCanvas->dialogBuffer);
+    while (j < strLen) {
+        if (str[j] == '|') {
+            doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 0] = (short)i;
+            doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 1] = (short)(j - i);
+            doomCanvas->numDialogLines++;
+            i = j + 1;
+        }
+        ++j;
+    }
+    doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 0] = (short)i;
+    doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 1] = (short)(strLen - i);
+    doomCanvas->numDialogLines++;
+
+    if (doomCanvas->state == ST_DIALOGPASSWORD && preparePassword) {
+        strLen = SDL_strlen(doomCanvas->game->passCode);
+        SDL_memset(doomCanvas->strPassCode, '_', strLen);
+        doomCanvas->strPassCode[strLen] = '\0';
+    }
+
+    doomCanvas->currentDialogLine = 0;
+    doomCanvas->dialogLineStartTime = doomCanvas->time;
+    doomCanvas->dialogTypeLineIdx = 0;
+    doomCanvas->dialogBackSoftKey = dialogBackSoftKey;
+}
+
 void DoomCanvas_dialogState(DoomCanvas_t* doomCanvas)
 {
 	char text[8];
@@ -477,11 +522,14 @@ void DoomCanvas_dialogState(DoomCanvas_t* doomCanvas)
 		DoomCanvas_drawString1(doomCanvas, text, doomCanvas->displayRect.w - 2, doomCanvas->doomRpg->hud->statusTopBarHeight + 2, 9);
 	}
 
-	if (doomCanvas->dialogBuffer[0] == '\0') {
+	if (doomCanvas->originalDialogText[0] == '\0') {
 		return;
 	}
 
-	DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
+    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(doomCanvas->originalDialogText),
+                                  doomCanvas->dialogBackSoftKey, false);
+
+    DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
 	DoomRPG_fillRect(doomCanvas->doomRpg, doomCanvas->SCR_CX - 64, doomCanvas->displayRect.h - 54, 128, 54);
 
 	if (doomCanvas->player->facingEntity != NULL && 
@@ -3165,37 +3213,8 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 
 void DoomCanvas_prepareDialog(DoomCanvas_t* doomCanvas, char* str, boolean dialogBackSoftKey)
 {
-	int strLen, i, j;
-
-	i = 0;
-	j = 0;
-	doomCanvas->numDialogLines = 0;
-	strncpy(doomCanvas->dialogBuffer, str, sizeof(doomCanvas->dialogBuffer));
-
-	strLen = SDL_strlen(doomCanvas->dialogBuffer);
-	while (j < strLen) {
-		if (str[j] == '|') {
-			doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 0] = (short)i;
-			doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 1] = (short)(j - i);
-			doomCanvas->numDialogLines++;
-			i = j + 1;
-		}
-		++j;
-	}
-	doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 0] = (short)i;
-	doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) + 1] = (short)(strLen - i);
-	doomCanvas->numDialogLines++;
-
-	if (doomCanvas->state == ST_DIALOGPASSWORD) {
-		strLen = SDL_strlen(doomCanvas->game->passCode);
-		SDL_memset(doomCanvas->strPassCode, '_', strLen);
-		doomCanvas->strPassCode[strLen] = '\0';
-	}
-
-	doomCanvas->currentDialogLine = 0;
-	doomCanvas->dialogLineStartTime = doomCanvas->time;
-	doomCanvas->dialogTypeLineIdx = 0;
-	doomCanvas->dialogBackSoftKey = dialogBackSoftKey;
+    strncpy(doomCanvas->originalDialogText, str, sizeof(doomCanvas->originalDialogText));
+    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(str), dialogBackSoftKey, true);
 }
 
 void DoomCanvas_restoreSoftKeys(DoomCanvas_t* doomCanvas)
