@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #ifndef DOOMRPG_H__
 #define DOOMRPG_H__
 
@@ -7,7 +8,7 @@
 
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
-typedef enum { false, true } boolean;
+typedef bool boolean;
 typedef unsigned char byte;
 #endif
 

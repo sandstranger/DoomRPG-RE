@@ -526,7 +526,7 @@ void DoomCanvas_dialogState(DoomCanvas_t* doomCanvas)
 		return;
 	}
 
-    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(doomCanvas->originalDialogText),
+    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(doomCanvas->originalDialogText, true),
                                   doomCanvas->dialogBackSoftKey, false);
 
     DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
@@ -3214,7 +3214,7 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 void DoomCanvas_prepareDialog(DoomCanvas_t* doomCanvas, char* str, boolean dialogBackSoftKey)
 {
     strncpy(doomCanvas->originalDialogText, str, sizeof(doomCanvas->originalDialogText));
-    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(str), dialogBackSoftKey, true);
+    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(str, true), dialogBackSoftKey, true);
 }
 
 void DoomCanvas_restoreSoftKeys(DoomCanvas_t* doomCanvas)
