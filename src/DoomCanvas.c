@@ -1519,8 +1519,6 @@ void DoomCanvas_scrollSpaceBG(DoomCanvas_t* doomCanvas)
 void DoomCanvas_drawString1(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, boolean translateText)
 {
     const char *textToDraw = translateText ? get_translation(text) : text;
-    SDL_Log("TEXT_TO_DRAW = %s", text);
-    SDL_Log("TEXT_TO_DRAW_TRANSLATED_TEXT = %s", textToDraw);
 	DoomCanvas_drawFont(doomCanvas, textToDraw, x, y, flags, 0, -1, 0);
 }
 

@@ -425,7 +425,11 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 						i12 -= local_34;
 					}
 
-					DoomCanvas_drawFont(doomCanvas, get_translation(textField2), i12, i2, 9, 0, -1, isLargerFont);
+                    if (doomCanvas->doomRpg->enableMachineTextTranslation){
+                        i12 += 45;
+                    }
+
+					DoomCanvas_drawFont(doomCanvas, textField2, i12, i2, 9, 0, -1, isLargerFont);
 				}
 
 				if (menuSystem->type != 5 && i11 == menuSystem->selectedIndex) {
