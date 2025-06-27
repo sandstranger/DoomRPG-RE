@@ -2017,7 +2017,8 @@ void Game_saveState(Game_t* game, int mapId, int x, int y, int angleDir, boolean
 		DoomRPG_setColor(game->doomRpg, 0xff000000);
 		DoomRPG_fillRect(game->doomRpg, 0, 0, game->doomRpg->doomCanvas->displayRect.w, game->doomRpg->doomCanvas->displayRect.h);
 		DoomRPG_setColor(game->doomRpg, 0xffffffff);
-		DoomCanvas_drawString1(game->doomRpg->doomCanvas, "Saving...", game->doomRpg->doomCanvas->SCR_CX, game->doomRpg->doomCanvas->SCR_CY - 24, 17);
+		DoomCanvas_drawString1(game->doomRpg->doomCanvas, "Saving...", game->doomRpg->doomCanvas->SCR_CX,
+                               game->doomRpg->doomCanvas->SCR_CY - 24, 17, true);
 		DoomRPG_flushGraphics(game->doomRpg);
 	}
 

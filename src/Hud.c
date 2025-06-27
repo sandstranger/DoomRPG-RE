@@ -307,7 +307,7 @@ void Hud_drawEffects(Hud_t* hud)
 
         SDL_snprintf(str, sizeof(str), "%d", hud->doomRpg->player->berserkerTics);
         doomCanvas = hud->doomRpg->doomCanvas;
-        DoomCanvas_drawString1(doomCanvas, str, doomCanvas->displayRect.w - 2, hud->doomRpg->hud->statusTopBarHeight + 2, 9);
+        DoomCanvas_drawString1(doomCanvas, str, doomCanvas->displayRect.w - 2, hud->doomRpg->hud->statusTopBarHeight + 2, 9, false);
     }
 }
 

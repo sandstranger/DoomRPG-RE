@@ -250,8 +250,8 @@ void DoomCanvas_drawImageSpecial(DoomCanvas_t* doomCanvas, Image_t* img, int xSr
 void DoomCanvas_drawScrollBar(DoomCanvas_t* doomCanvas, int y, int totalHeight, int i3, int i4, int i5);
 void DoomCanvas_drawSoftKeys(DoomCanvas_t* doomCanvas, char* softKeyLeft, char* softKeyRight);
 void DoomCanvas_scrollSpaceBG(DoomCanvas_t* doomCanvas);
-void DoomCanvas_drawString1(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags);
-void DoomCanvas_drawString2(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int param_6);
+void DoomCanvas_drawString1(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, boolean translateText);
+void DoomCanvas_drawString2(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int param_6, boolean translateText);
 void DoomCanvas_drawFont(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int strBeg, int strEnd, boolean isLargerFont);
 void DoomCanvas_dyingState(DoomCanvas_t* doomCanvas);
 void DoomCanvas_sorryState(DoomCanvas_t* doomCanvas);

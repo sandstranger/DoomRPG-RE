@@ -13,6 +13,7 @@
 #include "MenuSystem.h"
 #include "Sound.h"
 #include "SDL_Video.h"
+#include "DoomTranslator.h"
 
 MenuSystem_t* MenuSystem_init(MenuSystem_t* menuSystem, DoomRPG_t* doomRpg)
 {
@@ -294,7 +295,7 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 				int AvgMs1 = (doomCanvas->renderAvgMs * 100) / doomCanvas->st_count;
 				int AvgMs2 = doomCanvas->renderAvgMs / doomCanvas->st_count;
 				SDL_snprintf(doomCanvas->printMsg, sizeof(doomCanvas->printMsg), "Avg: %d.%dms", AvgMs2, AvgMs1 - (AvgMs2 * 100));
-				DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, 0, doomCanvas->displayRect.h - 12, 0, -1);
+				DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, 0, doomCanvas->displayRect.h - 12, 0, -1, false);
 			}
 
 			if (menuSystem->imgBG) {
@@ -424,7 +425,7 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 						i12 -= local_34;
 					}
 
-					DoomCanvas_drawFont(doomCanvas, textField2, i12, i2, 9, 0, -1, isLargerFont);
+					DoomCanvas_drawFont(doomCanvas, get_translation(textField2), i12, i2, 9, 0, -1, isLargerFont);
 				}
 
 				if (menuSystem->type != 5 && i11 == menuSystem->selectedIndex) {
@@ -432,7 +433,7 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 					i10 += 2;
 				}
 				if (textField[0] != '\0') {
-					DoomCanvas_drawFont(doomCanvas, textField, i10, i2, 0, 0, -1, isLargerFont);
+					DoomCanvas_drawFont(doomCanvas, get_translation(textField), i10, i2, 0, 0, -1, isLargerFont);
 				}
 			}
 
@@ -456,12 +457,12 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 			}
 
 			DoomRPG_setFontColor(menuSystem->doomRpg, 0xffffffff);
-			DoomCanvas_drawFont(doomCanvas, "Press New Key For", doomCanvas->SCR_CX, doomCanvas->SCR_CY, 16|32, 0, -1, isLargerFont);
+			DoomCanvas_drawFont(doomCanvas, get_translation("Press New Key For"), doomCanvas->SCR_CX, doomCanvas->SCR_CY, 16|32, 0, -1, isLargerFont);
 			SDL_snprintf(textField, sizeof(textField), "%s", menuSystem->items[menuSystem->bindIndx].textField);
 			textField[strlen(textField) - 1] = '\0'; // remove :
 
 			DoomRPG_setFontColor(menuSystem->doomRpg, 0xff80C0FF);
-			DoomCanvas_drawFont(doomCanvas, textField, doomCanvas->SCR_CX, doomCanvas->SCR_CY + local_28, 16 | 32, 0, -1, isLargerFont);
+			DoomCanvas_drawFont(doomCanvas, get_translation(textField), doomCanvas->SCR_CX, doomCanvas->SCR_CY + local_28, 16 | 32, 0, -1, isLargerFont);
 			DoomRPG_setFontColor(menuSystem->doomRpg, 0xffffffff);
 			
 		}

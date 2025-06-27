@@ -255,7 +255,7 @@ void DoomCanvas_setupmenu(DoomCanvas_t* doomCanvas, boolean notdrawLoading)
 	if (notdrawLoading == false) {
 		DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
 		DoomRPG_fillRect(doomCanvas->doomRpg, 0, 0, doomCanvas->displayRect.w, doomCanvas->displayRect.h);
-		DoomCanvas_drawString1(doomCanvas, "Loading...", doomCanvas->SCR_CX, doomCanvas->SCR_CY + -0x18, 0x11);
+		DoomCanvas_drawString1(doomCanvas, "Loading...", doomCanvas->SCR_CX, doomCanvas->SCR_CY + -0x18, 0x11, true);
 		DoomRPG_flushGraphics(doomCanvas->doomRpg);
 	}
 
@@ -519,14 +519,14 @@ void DoomCanvas_dialogState(DoomCanvas_t* doomCanvas)
 		//}
 
 		SDL_snprintf(text, 8, "%d", doomCanvas->doomRpg->player->berserkerTics);
-		DoomCanvas_drawString1(doomCanvas, text, doomCanvas->displayRect.w - 2, doomCanvas->doomRpg->hud->statusTopBarHeight + 2, 9);
+		DoomCanvas_drawString1(doomCanvas, text, doomCanvas->displayRect.w - 2, doomCanvas->doomRpg->hud->statusTopBarHeight + 2, 9, true);
 	}
 
 	if (doomCanvas->originalDialogText[0] == '\0') {
 		return;
 	}
 
-    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(doomCanvas->originalDialogText, true),
+    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation_ex(doomCanvas->originalDialogText, true),
                                   doomCanvas->dialogBackSoftKey, false);
 
     DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
@@ -597,7 +597,7 @@ void DoomCanvas_dialogState(DoomCanvas_t* doomCanvas)
 			doomCanvas->strPassCode, 
 			(doomCanvas->SCR_CX - 64) + ((doomCanvas->dialogIndexes[((doomCanvas->numDialogLines - 1) * 2) + 1] + 1) * 7),
 			//doomCanvas->SCR_CX + (doomCanvas->dialogIndexes[(doomCanvas->numDialogLines * 2) - 1] * 7) - 57,
-			posY - 12, 0, -1);
+			posY - 12, 0, -1,false);
 	}
 	if (doomCanvas->numDialogLines > 4) {
 		if (doomCanvas->currentDialogLine + 4 == doomCanvas->numDialogLines) {
@@ -825,7 +825,9 @@ void DoomCanvas_drawCredits(DoomCanvas_t* doomCanvas)
 
 	DoomCanvas_scrollSpaceBG(doomCanvas);
 	
-	DoomCanvas_drawString2(doomCanvas, doomCanvas->creditsText, doomCanvas->SCR_CX - 64, (doomCanvas->SCR_CY + 64) - ((doomCanvas->time - doomCanvas->creditsTextTime) / 62), 0, -1);
+	DoomCanvas_drawString2(doomCanvas, doomCanvas->creditsText, doomCanvas->SCR_CX - 64,
+                           (doomCanvas->SCR_CY + 64) - ((doomCanvas->time - doomCanvas->creditsTextTime) / 62),
+                           0, -1, false);
 	DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
 	DoomRPG_fillRect(doomCanvas->doomRpg, 0, -doomCanvas->displayRect.y, doomCanvas->displayRect.w, doomCanvas->displayRect.y + doomCanvas->SCR_CY - 64);
 	DoomRPG_fillRect(doomCanvas->doomRpg, 0, doomCanvas->SCR_CY + 64, doomCanvas->displayRect.w, (doomCanvas->clipRect.h - doomCanvas->SCR_CY) - 64);
@@ -925,7 +927,7 @@ void DoomCanvas_castState(DoomCanvas_t* doomCanvas)
 		}
 
 		if ((doomCanvas->castEntity) && ((sprite->info & 0x10000) == 0)) {
-			DoomCanvas_drawString2(doomCanvas, doomCanvas->castEntity->def->name, doomCanvas->displayRect.w / 2, doomCanvas->displayRect.h, 18, -1);
+			DoomCanvas_drawString2(doomCanvas, doomCanvas->castEntity->def->name, doomCanvas->displayRect.w / 2, doomCanvas->displayRect.h, 18, -1, true);
 		}
 
 		switch (doomCanvas->castSeq) {
@@ -1155,15 +1157,15 @@ void DoomCanvas_drawEpilogue(DoomCanvas_t* doomCanvas)
 	else {
 		DoomCanvas_scrollSpaceBG(doomCanvas);
 		DoomCanvas_drawString2(doomCanvas, doomCanvas->epilogueText[doomCanvas->epilogueTextPage], 
-			doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0, (doomCanvas->showTextDone != 0) ? -1 : doomCanvas->epilogueTextTime);
+			doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0, (doomCanvas->showTextDone != 0) ? -1 : doomCanvas->epilogueTextTime, true);
 
 		if (doomCanvas->epilogueTextPage < 1) {
 			DoomCanvas_drawImage(doomCanvas, &doomCanvas->menuSystem->imgHand, (doomCanvas->SCR_CX + 36) - 4, doomCanvas->SCR_CY + 64, 10);
-			DoomCanvas_drawString1(doomCanvas, "More", (doomCanvas->SCR_CX + 64) - 4, doomCanvas->SCR_CY + 64, 10);
+			DoomCanvas_drawString1(doomCanvas, "More", (doomCanvas->SCR_CX + 64) - 4, doomCanvas->SCR_CY + 64, 10, true);
 		}
 		else {
 			DoomCanvas_drawImage(doomCanvas, &doomCanvas->menuSystem->imgHand, (doomCanvas->SCR_CX + 8) - 4, doomCanvas->SCR_CY + 64, 10);
-			DoomCanvas_drawString1(doomCanvas, "Continue", (doomCanvas->SCR_CX + 64) - 4, doomCanvas->SCR_CY + 64, 10);
+			DoomCanvas_drawString1(doomCanvas, "Continue", (doomCanvas->SCR_CX + 64) - 4, doomCanvas->SCR_CY + 64, 10, true);
 		}
 
 		if ((doomCanvas->time - doomCanvas->epilogueTextTime) > (((int) SDL_strlen(doomCanvas->epilogueText[doomCanvas->epilogueTextPage]) * 25))) {
@@ -1220,19 +1222,21 @@ void DoomCanvas_drawStory(DoomCanvas_t* doomCanvas)
 			DoomCanvas_scrollSpaceBG(doomCanvas);
 
 			if (doomCanvas->showTextDone) {
-				DoomCanvas_drawString2(doomCanvas, text[doomCanvas->storyTextPage], doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0, -1);
+				DoomCanvas_drawString2(doomCanvas, text[doomCanvas->storyTextPage], doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0, -1, true);
 			}
 			else {
-				DoomCanvas_drawString2(doomCanvas, text[doomCanvas->storyTextPage], doomCanvas->SCR_CX -64,doomCanvas->SCR_CY - 64, 0, doomCanvas->storyTextTime);
+				DoomCanvas_drawString2(doomCanvas, text[doomCanvas->storyTextPage],
+                                       doomCanvas->SCR_CX -64,doomCanvas->SCR_CY - 64, 0,
+                                       doomCanvas->storyTextTime, true);
 			}
 
 			if (doomCanvas->storyTextPage < iVar1 - 1) {
 				DoomCanvas_drawImage(doomCanvas, &doomCanvas->doomRpg->menuSystem->imgHand, (doomCanvas->SCR_CX + 36) - 4, (doomCanvas->SCR_CY + 64) - 2, 10);
-				DoomCanvas_drawString1(doomCanvas, "More", (doomCanvas->SCR_CX + 64) - 4, (doomCanvas->SCR_CY + 64), 10);
+				DoomCanvas_drawString1(doomCanvas, "More", (doomCanvas->SCR_CX + 64) - 4, (doomCanvas->SCR_CY + 64), 10, true);
 			}
 			else {
 				DoomCanvas_drawImage(doomCanvas, &doomCanvas->doomRpg->menuSystem->imgHand, (doomCanvas->SCR_CX + 8) - 4, (doomCanvas->SCR_CY + 64) - 2, 10);
-				DoomCanvas_drawString1(doomCanvas, "Continue", (doomCanvas->SCR_CX + 64) - 4, (doomCanvas->SCR_CY + 64), 10);
+				DoomCanvas_drawString1(doomCanvas, "Continue", (doomCanvas->SCR_CX + 64) - 4, (doomCanvas->SCR_CY + 64), 10, true);
 			}
 
 			if (i2 > ((int)SDL_strlen(text[doomCanvas->storyTextPage]) * 25)) {
@@ -1472,7 +1476,7 @@ void DoomCanvas_drawSoftKeys(DoomCanvas_t* doomCanvas, char* softKeyLeft, char* 
 			DoomRPG_drawLine(doomCanvas->doomRpg, x1 + 52, y1, x1 + 52, y1 + 19);
 			DoomRPG_setColor(doomCanvas->doomRpg, 0x808591);
 			DoomRPG_drawLine(doomCanvas->doomRpg, x1 + 53, y1, x1 + 53, y1 + 19);
-			DoomCanvas_drawString1(doomCanvas, softKeyLeft, x + 26, y + 5, 17);
+			DoomCanvas_drawString1(doomCanvas, softKeyLeft, x + 26, y + 5, 17, true);
 		}
 
 		if (softKeyRight == NULL) {
@@ -1487,7 +1491,7 @@ void DoomCanvas_drawSoftKeys(DoomCanvas_t* doomCanvas, char* softKeyLeft, char* 
 			DoomRPG_drawLine(doomCanvas->doomRpg, x1, y1, x1, y1 + 19);
 			DoomRPG_setColor(doomCanvas->doomRpg, 0x808591);
 			DoomRPG_drawLine(doomCanvas->doomRpg, x1 + 1, y1, x1 + 1, y1 + 19);
-			DoomCanvas_drawString1(doomCanvas, softKeyRight, (doomCanvas->clipRect.w + x) - 28, y + 5, 17);
+			DoomCanvas_drawString1(doomCanvas, softKeyRight, (doomCanvas->clipRect.w + x) - 28, y + 5, 17, true);
 		}
 	}
 }
@@ -1512,14 +1516,18 @@ void DoomCanvas_scrollSpaceBG(DoomCanvas_t* doomCanvas)
 	//DoomCanvas_drawImageSpecial(doomCanvas, &doomCanvas->imgSpaceBG, i3, 0, 128, 128, 0, doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0);
 }
 
-void DoomCanvas_drawString1(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags)
+void DoomCanvas_drawString1(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, boolean translateText)
 {
-	DoomCanvas_drawFont(doomCanvas, text, x, y, flags, 0, -1, 0);
+    const char *textToDraw = translateText ? get_translation(text) : text;
+    SDL_Log("TEXT_TO_DRAW = %s", text);
+    SDL_Log("TEXT_TO_DRAW_TRANSLATED_TEXT = %s", textToDraw);
+	DoomCanvas_drawFont(doomCanvas, textToDraw, x, y, flags, 0, -1, 0);
 }
 
-void DoomCanvas_drawString2(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int param_6)
+void DoomCanvas_drawString2(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int param_6, boolean translateText)
 {
-	DoomCanvas_drawFont(doomCanvas, text, x, y, flags, 0, (doomCanvas->time - param_6) / 25, 0);
+    const char *textToDraw = translateText ? get_translation(text) : text;
+    DoomCanvas_drawFont(doomCanvas, textToDraw, x, y, flags, 0, (doomCanvas->time - param_6) / 25, 0);
 }
 
 #ifdef ANDROID
@@ -2115,8 +2123,8 @@ void DoomCanvas_sorryState(DoomCanvas_t* doomCanvas)
 	DoomRPG_setClipTrue(doomCanvas->doomRpg, doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 128, 128);
 	DoomCanvas_scrollSpaceBG(doomCanvas);
 
-	DoomCanvas_drawString2(doomCanvas, "Sorry!", doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0, -1);
-	DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 40, 0, -1);
+	DoomCanvas_drawString2(doomCanvas, "Sorry!", doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 64, 0, -1, true);
+	DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, doomCanvas->SCR_CX - 64, doomCanvas->SCR_CY - 40, 0, -1, true);
 }
 
 void DoomCanvas_finishMovement(DoomCanvas_t* doomCanvas)
@@ -2822,7 +2830,7 @@ void DoomCanvas_loadPrologueText(DoomCanvas_t* doomCanvas)
 	int textLen;
 	DoomRPG_setColor(doomCanvas->doomRpg, 0x000000);
 	DoomRPG_fillRect(doomCanvas->doomRpg, 0, 0, doomCanvas->displayRect.w, doomCanvas->displayRect.h);
-	DoomCanvas_drawString1(doomCanvas, "Loading...", doomCanvas->SCR_CX, doomCanvas->SCR_CY, 17);
+	DoomCanvas_drawString1(doomCanvas, "Loading...", doomCanvas->SCR_CX, doomCanvas->SCR_CY, 17, true);
 
 	DoomRPG_flushGraphics(doomCanvas->doomRpg);
 	Sound_playSound(doomCanvas->doomRpg->sound, 5039, SND_FLG_LOOP | SND_FLG_STOPSOUNDS | SND_FLG_ISMUSIC, 5);
@@ -2900,16 +2908,17 @@ boolean DoomCanvas_loadMedia(DoomCanvas_t* doomCanvas)
 	{
 		DoomRPG_setColor(doomCanvas->doomRpg, doomCanvas->render->introColor);
 		DoomRPG_fillRect(doomCanvas->doomRpg, 0, 0, doomCanvas->displayRect.w, doomCanvas->displayRect.h);
-		DoomCanvas_drawString1(doomCanvas, "Loading", doomCanvas->SCR_CX, doomCanvas->SCR_CY - 48, 17);
-		DoomCanvas_drawString2(doomCanvas, doomCanvas->render->mapName, doomCanvas->SCR_CX, doomCanvas->SCR_CY - 36, 17, -1);
+		DoomCanvas_drawString1(doomCanvas, "Loading", doomCanvas->SCR_CX, doomCanvas->SCR_CY - 48, 17, true);
+		DoomCanvas_drawString2(doomCanvas, doomCanvas->render->mapName, doomCanvas->SCR_CX,
+                               doomCanvas->SCR_CY - 36, 17, -1, true);
 		doomCanvas->fillRectIndex = 0;
 		//DoomCanvas_updateLoadingBar(doomCanvas);
 
 		if (doomCanvas->game->isSaved) {
-			DoomCanvas_drawString1(doomCanvas, "Game Saved", doomCanvas->SCR_CX, doomCanvas->displayRect.h, 18);
+			DoomCanvas_drawString1(doomCanvas, "Game Saved", doomCanvas->SCR_CX, doomCanvas->displayRect.h, 18, true);
 		}
 		else {
-			DoomCanvas_drawString1(doomCanvas, "Game Loaded", doomCanvas->SCR_CX, doomCanvas->displayRect.h, 18);
+			DoomCanvas_drawString1(doomCanvas, "Game Loaded", doomCanvas->SCR_CX, doomCanvas->displayRect.h, 18, true);
 		}
 
 		DoomRPG_flushGraphics(doomCanvas->doomRpg);
@@ -3214,7 +3223,7 @@ void DoomCanvas_playingState(DoomCanvas_t* doomCanvas)
 void DoomCanvas_prepareDialog(DoomCanvas_t* doomCanvas, char* str, boolean dialogBackSoftKey)
 {
     strncpy(doomCanvas->originalDialogText, str, sizeof(doomCanvas->originalDialogText));
-    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation(str, true), dialogBackSoftKey, true);
+    DoomCanvas_updateDialogBuffer(doomCanvas, get_translation_ex(str, true), dialogBackSoftKey, true);
 }
 
 void DoomCanvas_restoreSoftKeys(DoomCanvas_t* doomCanvas)
@@ -3293,17 +3302,17 @@ void DoomCanvas_renderOnlyState(DoomCanvas_t* doomCanvas)
 		avg1 = (doomCanvas->renderAvgMs * 100) / doomCanvas->st_count;
 		avg2 = doomCanvas->renderAvgMs / doomCanvas->st_count;
 		SDL_snprintf(text, sizeof(text), "Render Avg: %d.%02dms", avg2, avg1 - (avg2 * 100));
-		DoomCanvas_drawString2(doomCanvas, text, 0, doomCanvas->doomRpg->hud->statusTopBarHeight, 0, -1);
+		DoomCanvas_drawString2(doomCanvas, text, 0, doomCanvas->doomRpg->hud->statusTopBarHeight, 0, -1, false);
 
 		avg1 = (doomCanvas->horizAvgMs * 100) / doomCanvas->st_count;
 		avg2 = doomCanvas->horizAvgMs / doomCanvas->st_count;
 		SDL_snprintf(text, sizeof(text), " Horiz Avg: %d.%02dms", avg2, avg1 - (avg2 * 100));
-		DoomCanvas_drawString2(doomCanvas, text, 0, doomCanvas->doomRpg->hud->statusTopBarHeight + 12, 0, -1);
+		DoomCanvas_drawString2(doomCanvas, text, 0, doomCanvas->doomRpg->hud->statusTopBarHeight + 12, 0, -1, false);
 
 		avg1 = (doomCanvas->loopAvgMs * 100) / doomCanvas->st_count;
 		avg2 = doomCanvas->loopAvgMs / doomCanvas->st_count;
 		SDL_snprintf(text, sizeof(text), " Total Avg: %d.%02dms", avg2, avg1 - (avg2 * 100));
-		DoomCanvas_drawString2(doomCanvas, text, 0, doomCanvas->doomRpg->hud->statusTopBarHeight + 24, 0, -1);
+		DoomCanvas_drawString2(doomCanvas, text, 0, doomCanvas->doomRpg->hud->statusTopBarHeight + 24, 0, -1,false);
 	}
 
 	doomCanvas->loopEnd = DoomRPG_GetUpTimeMS();
@@ -3604,7 +3613,7 @@ void DoomCanvas_run(DoomCanvas_t* doomCanvas)
 			doomCanvas->afterRender = 0;
 		}
 		snprintf(doomCanvas->printMsg, sizeof(doomCanvas->printMsg), "%d: %d / %d", doomCanvas->state, doomCanvas->lastRenderTime, doomCanvas->lastLoopTime);
-		DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, 0, doomCanvas->doomRpg->hud->statusTopBarHeight, 0, -1);
+		DoomCanvas_drawString2(doomCanvas, doomCanvas->printMsg, 0, doomCanvas->doomRpg->hud->statusTopBarHeight, 0, -1,false);
 	}
 
 	// New Code Lines
@@ -3740,8 +3749,8 @@ void DoomCanvas_setState(DoomCanvas_t* doomCanvas, int stateNum)
 			msg = doomCanvas->printMsg;
 		}
 
-		DoomCanvas_drawString1(doomCanvas, msg, doomCanvas->SCR_CX, doomCanvas->SCR_CY -12, 0x11);
-		DoomCanvas_drawString1(doomCanvas, justAMoment, doomCanvas->SCR_CX, doomCanvas->SCR_CY, 0x11);
+		DoomCanvas_drawString1(doomCanvas, msg, doomCanvas->SCR_CX, doomCanvas->SCR_CY -12, 0x11, true);
+		DoomCanvas_drawString1(doomCanvas, justAMoment, doomCanvas->SCR_CX, doomCanvas->SCR_CY, 0x11, true);
 		DoomCanvas_drawSoftKeys(doomCanvas, NULL, NULL);
 
 		DoomRPG_flushGraphics(doomCanvas->doomRpg);

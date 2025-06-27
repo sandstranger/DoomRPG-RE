@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 project(DoomRPG LANGUAGES C)
 
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 if (NOT ANDROID)
 	list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
 else()
