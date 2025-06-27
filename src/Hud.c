@@ -379,7 +379,7 @@ void Hud_drawTopBar(Hud_t* hud)
 
     strEnd = SDL_strlen(translatedText);
     w = doomCanvas->displayRect.w;
-    if (((strEnd * 9) + 10) > w) {
+    if (((strEnd * 9) + 10) > w && !doomCanvas->doomRpg->enableMachineTextTranslation) {
         strEnd = ((unsigned int)((w - 1) / 7)) - 1;
     }
 
