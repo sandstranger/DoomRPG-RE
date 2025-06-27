@@ -1773,6 +1773,7 @@ static SDL_Texture* CreateGlyphWithOutline(TTF_Font* font, Uint32 codePoint, SDL
 
     SDL_FillRect(finalSurf, NULL, SDL_MapRGBA(finalSurf->format, 0, 0, 0, 0));
 
+
     // Рендерим обводку
     SDL_Rect dest = {0, 0, outlineSurf->w, outlineSurf->h};
     for (int oy = -outline; oy <= outline; oy++) {
@@ -4031,7 +4032,7 @@ void DoomCanvas_startup(DoomCanvas_t* doomCanvas)
 
 
 #ifdef ANDROID
-    doomCanvas->normalFont = DoomRPG_LoadTTFFont("Silver.ttf", 18);
+    doomCanvas->normalFont = DoomRPG_LoadTTFFont("LanaPixel.ttf", 11);
     doomCanvas->largeFont = DoomRPG_LoadTTFFont("UnifontExMono.ttf", 16);
     TTF_SetFontStyle(doomCanvas->largeFont , TTF_STYLE_BOLD);
 #endif

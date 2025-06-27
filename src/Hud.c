@@ -13,6 +13,7 @@
 #include "EntityDef.h"
 #include "Weapon.h"
 #include "SDL_Video.h"
+#include "DoomTranslator.h"
 
 Hud_t* Hud_init(Hud_t* hud, DoomRPG_t* doomRpg)
 {
@@ -374,13 +375,15 @@ void Hud_drawTopBar(Hud_t* hud)
         return;
     }  
 
-    strEnd = SDL_strlen(text);
+    const char* translatedText = get_translation(text);
+
+    strEnd = SDL_strlen(translatedText);
     w = doomCanvas->displayRect.w;
     if (((strEnd * 9) + 10) > w) {
         strEnd = ((unsigned int)((w - 1) / 7)) - 1;
     }
 
-    DoomCanvas_drawFont(doomCanvas, text, 1, (hud->statusTopBarHeight >> 1) - 5, 0, strBeg, strEnd, false);
+    DoomCanvas_drawFont(doomCanvas, translatedText, 1, (hud->statusTopBarHeight >> 1) - 5, 0, strBeg, strEnd, false);
 }
 
 void Hud_finishMessageBufferForce(Hud_t* hud, boolean force)
