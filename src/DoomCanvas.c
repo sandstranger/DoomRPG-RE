@@ -3820,7 +3820,7 @@ void DoomCanvas_startDialog(DoomCanvas_t* doomCanvas, char* text, boolean dialog
 void DoomCanvas_startDialogPassword(DoomCanvas_t* doomCanvas, char* text)
 {
 	DoomCanvas_setState(doomCanvas, ST_DIALOGPASSWORD);
-	//DoomCanvas_prepareDialog(doomCanvas, text, false);
+	DoomCanvas_prepareDialog(doomCanvas, text, false);
 	doomCanvas->passCode[0] = '\0';
 	doomCanvas->passInput = '0';
 }
