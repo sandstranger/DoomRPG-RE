@@ -425,7 +425,7 @@ void MenuSystem_paint(MenuSystem_t* menuSystem)
 						i12 -= local_34;
 					}
 
-                    if (doomCanvas->doomRpg->enableMachineTextTranslation){
+                    if (doomCanvas->doomRpg->enableSDLTTF){
                         i12 += 45;
                     }
 
