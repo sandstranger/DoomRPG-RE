@@ -1155,10 +1155,10 @@ void Render_relinkSprite(Render_t* render, Sprite_t* sprite)
 
 void Render_addMapTextures(Render_t* render, int textureId)
 {
-	// Nuevo: esto evita desbordamientos de búfer
+	// Nuevo: esto evita desbordamientos de bï¿½fer
 	// Esto sucede en el archivo level05.bsp, ya que al leer los datos (floorTex) tiene un valor de 153(0x99) 
-	// lo que supera el límite de memoria inicializado de mediaTexturesIds que es 152, 
-	// creando así el desbordamiento, esto también sucede en dispositivos móviles BREW
+	// lo que supera el lï¿½mite de memoria inicializado de mediaTexturesIds que es 152, 
+	// creando asï¿½ el desbordamiento, esto tambiï¿½n sucede en dispositivos mï¿½viles BREW
 	//
 	// New: this prevents buffer overflows
 	// This happens in the level05.bsp file, since when reading the data (floorTex) it has a value of 153(0x99)
@@ -1190,7 +1190,7 @@ void Render_addMapTexture(Render_t* render, int textureIndex)
 
 void Render_addMapSprites(Render_t* render, int spriteId)
 {
-	// Nuevo: esto evita desbordamientos de búfer
+	// Nuevo: esto evita desbordamientos de bï¿½fer
 	// New avoid buffer overflows
 	if (spriteId >= render->spriteCnt) {
 		spriteId = (render->spriteCnt - 1);
@@ -2814,7 +2814,7 @@ void Render_draw2DSprite(Render_t* render, int weaponFrame, int flashFrame, int 
 
 
 			// Port:
-			// corregir píxeles vacíos en la parte inferior del gráfico
+			// corregir pï¿½xeles vacï¿½os en la parte inferior del grï¿½fico
 			// fix empty pixels at bottom of graph
 			{
 				//i21 += 1;
@@ -2878,48 +2878,59 @@ void Render_fadeScreen(Render_t* render, int fade)
 }
 
 void Render_setBerserkColor(Render_t* render) {
-	int pitch, i, j;
-	short* pixels;
-	byte red;
+    int pitch, i, j;
+    short* pixels;
+    byte red;
 
-	pitch = render->pitch;
-	for (i = 0; i < render->screenHeight; i++) {
-		pixels = render->pixels + ((pitch >> 1) * i);
-		for (j = 0; j < render->screenWidth; j++) {
+    pitch = render->pitch;
+    for (i = 0; i < render->screenHeight; i++) {
+        pixels = render->pixels + ((pitch >> 1) * i);
+        for (j = 0; j < render->screenWidth; j++) {
 
-			red = ((pixels[0] >> 11) & 0x1f) + 8;
-			if (red > 31) {
-				red = 31;
-			}
+            red = ((pixels[0] >> 11) & 0x1f) + 8;
+            if (red > 31) {
+                red = 31;
+            }
 
-			pixels[0] = ((pixels[0] & 0xfffff7df) >> 1) & 0x7ff | (red << 11);
-			pixels++;
-		}
-	}
+            pixels[0] = ((pixels[0] & 0xfffff7df) >> 1) & 0x7ff | (red << 11);
+            pixels++;
+        }
+    }
 
-	// Necesario para actualizar el framebuffer
-	// Needed to update the framebuffer
+    const int vw = sdlVideo.rendererW;
+    const int vh = sdlVideo.rendererH;
+    const int sx = render->screenX;
+    const int sy = render->screenY;
+    const int sw = render->screenWidth;
+    const int sh = render->screenHeight;
 
-	SDL_Rect renderQuad, clip;
+    SDL_UpdateTexture(render->piDIB, NULL, render->framebuffer, render->pitch); // Ð˜ÑÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½ pitch
 
-	clip.x = render->screenX;
-	clip.y = render->screenY;
-	clip.w = render->screenWidth;
-	clip.h = render->screenHeight;
+    SDL_Rect srcRect = { sx, sy, sw, sh };
+    SDL_Rect dstRect = { sx, sy, sw, sh };
 
-	renderQuad.x = render->screenX;
-	renderQuad.y = render->screenY;
-	renderQuad.w = sdlVideo.rendererW;
-	renderQuad.h = sdlVideo.rendererH;
-	if (clip.w <= renderQuad.w) {
-		renderQuad.w = clip.w;
-	}
-	if (clip.h <= renderQuad.h) {
-		renderQuad.h = clip.h;
-	}
+    if (dstRect.x < 0) {
+        srcRect.x   -= dstRect.x;
+        srcRect.w   += dstRect.x;
+        dstRect.w   += dstRect.x;
+        dstRect.x    = 0;
+    }
+    if (dstRect.y < 0) {
+        srcRect.y   -= dstRect.y;
+        srcRect.h   += dstRect.y;
+        dstRect.h   += dstRect.y;
+        dstRect.y    = 0;
+    }
+    if (dstRect.x + dstRect.w > vw)
+        dstRect.w = vw - dstRect.x;
+    if (dstRect.y + dstRect.h > vh)
+        dstRect.h = vh - dstRect.y;
+    if (dstRect.w <= 0 || dstRect.h <= 0) return;
 
-	SDL_UpdateTexture(render->piDIB, NULL, render->framebuffer, sdlVideo.rendererW * 2);
-	SDL_RenderCopy(sdlVideo.renderer, render->piDIB, &clip, &renderQuad);
+    srcRect.w = dstRect.w;
+    srcRect.h = dstRect.h;
+
+    SDL_RenderCopy(sdlVideo.renderer, render->piDIB, &srcRect, &dstRect);
 }
 
 int Render_findEventIndex(Render_t* render, int i)
