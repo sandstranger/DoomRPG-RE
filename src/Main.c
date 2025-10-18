@@ -232,19 +232,19 @@ int main(int argc, char* args[])
 }
 
 #ifdef ANDROID
-JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_EngineActivity_resumeSound(JNIEnv *env, jobject thisObject) {
+JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_DoomRpgSeriesGameActivity_resumeSound(JNIEnv *env, jobject thisObject) {
     if (doomRpg && doomRpg->sound) {
         Sound_resumeAll(doomRpg->sound);
     }
 }
 
-JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_EngineActivity_pauseSound(JNIEnv *env, jobject thisObject) {
+JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_DoomRpgSeriesGameActivity_pauseSound(JNIEnv *env, jobject thisObject) {
     if (doomRpg && doomRpg->sound) {
         Sound_pauseAll(doomRpg->sound);
     }
 }
 
-JNIEXPORT jboolean JNICALL Java_com_mobilerpgpack_phone_engine_activity_EngineActivity_needToShowScreenControls(JNIEnv *env, jobject thisObject) {
+JNIEXPORT jboolean JNICALL Java_com_mobilerpgpack_phone_engine_activity_DoomRpgSeriesGameActivity_needToShowScreenControls(JNIEnv *env, jobject thisObject) {
     return true;
 }
 #endif
