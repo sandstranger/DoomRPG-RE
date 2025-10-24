@@ -15,7 +15,6 @@
 
 #ifdef ANDROID
 #include <SDL_main.h>
-#include <jni.h>
 #include "Sound.h"
 #endif
 
@@ -232,19 +231,19 @@ int main(int argc, char* args[])
 }
 
 #ifdef ANDROID
-JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_DoomRpgSeriesGameActivity_resumeSound(JNIEnv *env, jobject thisObject) {
+void resumeSound() {
     if (doomRpg && doomRpg->sound) {
         Sound_resumeAll(doomRpg->sound);
     }
 }
 
-JNIEXPORT void JNICALL Java_com_mobilerpgpack_phone_engine_activity_DoomRpgSeriesGameActivity_pauseSound(JNIEnv *env, jobject thisObject) {
+void pauseSound() {
     if (doomRpg && doomRpg->sound) {
         Sound_pauseAll(doomRpg->sound);
     }
 }
 
-JNIEXPORT jboolean JNICALL Java_com_mobilerpgpack_phone_engine_activity_DoomRpgSeriesGameActivity_needToShowScreenControls(JNIEnv *env, jobject thisObject) {
+boolean needToShowScreenControls() {
     return true;
 }
 #endif

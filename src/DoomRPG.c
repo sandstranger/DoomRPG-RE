@@ -2,7 +2,6 @@
 //Using SDL and standard IO
 #include <SDL.h>
 #include <stdio.h>
-
 #include "Z_Zone.h"
 #include "DoomRPG.h"
 #include "DoomCanvas.h"
