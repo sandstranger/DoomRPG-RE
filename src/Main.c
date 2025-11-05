@@ -39,7 +39,7 @@ int main(int argc, char* args[])
 	SDL_InitAudio();
 
 #ifdef ANDROID
-    openZipFile(getenv("RESOURCE_FILE_NAME"), &zipFile);
+    openZipFile(getenv("PATH_TO_RESOURCES"), &zipFile);
 #else
     openZipFile("DoomRPG.zip", &zipFile);
 #endif
