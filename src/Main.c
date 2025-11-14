@@ -246,5 +246,10 @@ void pauseSound() {
 boolean needToShowScreenControls() {
     return true;
 }
+
+bool needToInvokeMouseButtonsEvents(){
+    return true;
+}
+
 #endif
 
