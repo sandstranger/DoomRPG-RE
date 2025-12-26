@@ -242,7 +242,7 @@ void RescanAndOpenFirstConnectedDevice(){
 }
 
 #if ANDROID
-void rescanGameControllersForced() {
+void rescanGameControllersForced(char *targetVirtualControllerGUID){
     RescanAndOpenFirstConnectedDevice();
 }
 #endif
