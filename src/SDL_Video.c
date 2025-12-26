@@ -188,7 +188,7 @@ void CloseController(){
 
 
 void RescanAndOpenFirstConnectedDevice(){
-
+    SDL_GameControllerUpdate();
     if (sdlController.gGameController && !SDL_GameControllerGetAttached (sdlController.gGameController)){
         CloseController();
     }
@@ -241,6 +241,11 @@ void RescanAndOpenFirstConnectedDevice(){
     }
 }
 
+#if ANDROID
+void rescanGameControllersForced() {
+    RescanAndOpenFirstConnectedDevice();
+}
+#endif
 void SDL_InitVideo(void)
 {
 	Uint32 flags;
@@ -278,6 +283,21 @@ void SDL_InitVideo(void)
 	SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
 #ifdef ANDROID
     SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+    SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT_CORRELATE_XINPUT, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS3, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_WII, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAM, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
 #endif
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         DoomRPG_Error("Could not initialize SDL: %s", SDL_GetError());
