@@ -179,7 +179,7 @@ int main(int argc, char* args[])
 					if (ev.window.event != SDL_WINDOWEVENT_CLOSE)
 					{
 						int w, h;
-						SDL_GetWindowSize(sdlVideo.window, &w, &h);
+						SDL_GL_GetDrawableSize(sdlVideo.window, &w, &h);
 						SDL_WarpMouseInWindow(sdlVideo.window, w / 2, h / 2);
 						SDL_GetRelativeMouseState(NULL, NULL);
 					}
