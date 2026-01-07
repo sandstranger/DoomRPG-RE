@@ -316,7 +316,7 @@ void SDL_InitVideo(void)
 	SDL_ShowCursor(SDL_DISABLE);
 
 #ifdef ANDROID
-    flags |= SDL_WINDOW_FULLSCREEN;
+    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 #else
 	if (sdlVideo.fullScreen) {
 		flags |= SDL_WINDOW_FULLSCREEN;
