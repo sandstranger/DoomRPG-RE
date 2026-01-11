@@ -242,22 +242,25 @@ int main(int argc, char* args[])
 }
 
 #ifdef ANDROID
-void resumeSound() {
+__attribute__((used)) __attribute__((visibility("default")))
+void onNativeResume() {
     if (doomRpg && doomRpg->sound) {
         Sound_resumeAll(doomRpg->sound);
     }
 }
 
-void pauseSound() {
+__attribute__((used)) __attribute__((visibility("default")))
+void onNativePause() {
     if (doomRpg && doomRpg->sound) {
         Sound_pauseAll(doomRpg->sound);
     }
 }
 
+__attribute__((used)) __attribute__((visibility("default")))
 boolean needToShowScreenControls() {
     return true;
 }
-
+__attribute__((used)) __attribute__((visibility("default")))
 bool needToInvokeMouseButtonsEvents(){
     return true;
 }
