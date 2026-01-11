@@ -19,6 +19,12 @@
 #endif
 
 extern DoomRPG_t* doomRpg;
+
+#if ANDROID
+typedef void (*forceLandScapeActivityOrientationDelegate)();
+static forceLandScapeActivityOrientationDelegate activityOrientationChangerInstance = nullptr;
+#endif
+
 #ifdef ANDROID
 int SDL_main(int argc, char **argv)
 #else
@@ -78,6 +84,11 @@ int main(int argc, char* args[])
 
 		while (SDL_PollEvent(&ev))
 		{
+#if ANDROID
+            if (ev.type == SDL_APP_DIDENTERFOREGROUND && activityOrientationChangerInstance!= nullptr){
+                activityOrientationChangerInstance();
+            }
+#endif
 			// check event type
 			switch (ev.type) {
 
@@ -254,5 +265,11 @@ __attribute__((used)) __attribute__((visibility("default")))
 bool needToReInitGameControllers (){
     return false;
 }
+
+__attribute__((used)) __attribute__((visibility("default")))
+void registerForceLandscapeActivityOrientationCallback (forceLandScapeActivityOrientationDelegate instance) {
+    activityOrientationChangerInstance = instance;
+}
+
 #endif
 
