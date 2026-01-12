@@ -32,7 +32,7 @@ int main(int argc, char* args[])
 #endif
 {
 #ifdef ANDROID
-    chdir(SDL_AndroidGetExternalStoragePath());
+    chdir(getenv("PATH_TO_USER_FOLDER"));
 #endif
 
 	SDL_Event ev;
