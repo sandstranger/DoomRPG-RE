@@ -24,6 +24,15 @@ extern DoomRPG_t* doomRpg;
 static char *g_pathToZipFile = nullptr;
 static char *g_pathToUserFolder = nullptr;
 static char *g_pathToSDLControllerDB = nullptr;
+
+static void freeChars(char **targetChars)
+{
+    if (targetChars && *targetChars)
+    {
+        free(*targetChars);
+        *targetChars = nullptr;
+    }
+}
 #endif
 
 #ifdef ANDROID
@@ -234,26 +243,14 @@ int main(int argc, char* args[])
 	SDL_CloseAudio();
 	SDL_Close();
 #if ANDROID
-    free(g_pathToZipFile);
-    g_pathToZipFile = nullptr;
-    free(g_pathToUserFolder);
-    g_pathToUserFolder = nullptr;
-    free(g_pathToSDLControllerDB);
-    g_pathToSDLControllerDB = nullptr;
+    freeChars(&g_pathToZipFile);
+    freeChars(&g_pathToUserFolder);
+    freeChars(&g_pathToSDLControllerDB);
 #endif
 	return 0;
 }
 
 #ifdef ANDROID
-static void freeChars(char **targetChars)
-{
-    if (targetChars && *targetChars)
-    {
-        free(*targetChars);
-        *targetChars = nullptr;
-    }
-}
-
 __attribute__((used)) __attribute__((visibility("default")))
 void onNativeResume() {
     if (doomRpg && doomRpg->sound) {
