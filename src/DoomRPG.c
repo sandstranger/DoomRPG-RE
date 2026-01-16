@@ -17,6 +17,7 @@
 #include "Combat.h"
 #include "SDL_Video.h"
 #include "Z_Zip.h"
+#include <stdarg.h> //va_list|va_start|va_end
 
 DoomRPG_t* doomRpg = NULL;
 
@@ -37,7 +38,19 @@ keyMapping_t keyMappingDefault[12] = {
 	{AVK_MENUOPEN | AVK_MENU_OPEN,		{SDL_SCANCODE_ESCAPE,CONTROLLER_BUTTON_START | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}} // Open menu/back
 };
 
-#include <stdarg.h> //va_list|va_start|va_end
+#if ANDROID
+static bool g_enableSDLTTF = false;
+static bool g_enableMachineTranslation = false;
+
+__attribute__((used)) __attribute__((visibility("default")))
+void setEnableSDLTTFState (const bool enableSDLTTF){
+    g_enableSDLTTF = enableSDLTTF;
+}
+__attribute__((used)) __attribute__((visibility("default")))
+void setEnableMachineTranslationState (const bool enableMachineTranslation){
+    g_enableMachineTranslation = enableMachineTranslation;
+}
+#endif
 
 void DoomRPG_Error(const char* fmt, ...) // 0x1C648
 {
@@ -507,8 +520,8 @@ int DoomRPG_Init(void) // 0x3141C
 
 	doomRpg = SDL_malloc(sizeof(DoomRPG_t));
 #ifdef ANDROID
-    doomRpg->enableMachineTextTranslation = strcmp(getenv("ENABLE_TEXTS_MACHINE_TRANSLATION"), "true") == 0;
-    doomRpg->enableSDLTTF = strcmp(getenv("ENABLE_SDL_TTF"), "true") == 0 || doomRpg->enableMachineTextTranslation;
+    doomRpg->enableMachineTextTranslation = g_enableMachineTranslation;
+    doomRpg->enableSDLTTF = g_enableSDLTTF;
 #endif
 	doomRpg->memoryBeg = DoomRPG_freeMemory();
 	doomRpg->imageMemory = 0;

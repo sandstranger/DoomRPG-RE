@@ -22,6 +22,12 @@ FluidSynth_t fluidSynth;
 #ifdef ANDROID
 SDLVidModes_t *sdlVideoModes;
 int generatedVideoModsCount;
+static int g_screenWidth = -1;
+static int g_screenHeight = -1;
+static int g_glesVersionToUse = 3;
+static bool g_recalculateScreenResolutions = true;
+static char *g_pathToSDLControllerDB = nullptr;
+extern void freeChars (char *targetChars);
 #else
 SDLVidModes_t sdlVideoModes[14] =
 {
@@ -45,6 +51,28 @@ SDLVidModes_t sdlVideoModes[14] =
 #ifdef ANDROID
 #define MIN_WIDTH 100
 #define MIN_HEIGHT 60
+
+__attribute__((used)) __attribute__((visibility("default")))
+void setScreenResolution (const int screenWidth, const int screenHeight){
+    g_screenWidth = screenWidth;
+    g_screenHeight = screenHeight;
+}
+
+__attribute__((used)) __attribute__((visibility("default")))
+void setRecalculateScreenResolutionsState (const bool recalculateScreenResolutions){
+    g_recalculateScreenResolutions = recalculateScreenResolutions;
+}
+
+__attribute__((used)) __attribute__((visibility("default")))
+void setPathToSDLControllerDB (const char *pathToSDLControllerDB){
+    freeChars(&g_pathToSDLControllerDB);
+    g_pathToSDLControllerDB = strdup(pathToSDLControllerDB);
+}
+
+__attribute__((used)) __attribute__((visibility("default")))
+void setGLESVersionToUse (const int targetGlESVersion){
+    g_glesVersionToUse = targetGlESVersion;
+}
 
 int isDuplicate(SDLVidModes_t* modes, int count, int w, int h) {
     for (int i = 0; i < count; i++) {
@@ -266,8 +294,7 @@ void SDL_InitVideo(void)
     sdlVideo.vSync = true;
     sdlVideo.integerScaling = false;
 
-    sdlVideoModes = generateVideoModes(atoi(getenv("SCREEN_WIDTH")),
-                                             atoi(getenv("SCREEN_HEIGHT")),
+    sdlVideoModes = generateVideoModes(g_screenWidth,g_screenHeight,
                                              &generatedVideoModsCount, 1);
     sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
 
@@ -275,7 +302,7 @@ void SDL_InitVideo(void)
 
 	Game_loadConfig(NULL);
 #ifdef ANDROID
-    if (strcmp(getenv("RECALCULATE_RESOLUTION_INDEX"), "true") == 0){
+    if (g_recalculateScreenResolutions){
         sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
     }
 #endif
@@ -330,7 +357,7 @@ void SDL_InitVideo(void)
 #ifdef ANDROID
     sdlVideo.fullScreen = true;
 
-    bool useLegacyOpenGLES2_0 = strcmp(getenv("LIBGL_ES"), "2") == 0;
+    bool useLegacyOpenGLES2_0 = g_glesVersionToUse == 2;
     SDL_Log(useLegacyOpenGLES2_0 ? "Legacy OpenGL ES 2.0 is using for rendering" :
             "OpenGL ES 3.2 is using for rendering");
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
@@ -347,12 +374,10 @@ void SDL_InitVideo(void)
 		DoomRPG_Error("Could not set %dx%d video mode: %s", displayMode.w, displayMode.h, SDL_GetError());
     }
 
-    char *pathToSdl2ControllerDb = getenv("PATH_TO_SDL2_CONTROLLER_DB");
-
-    if (SDL_GameControllerAddMappingsFromFile(pathToSdl2ControllerDb) < 0) {
+    if (SDL_GameControllerAddMappingsFromFile(g_pathToSDLControllerDB) < 0) {
         SDL_Log("Couldn't load mappings: %s\n", SDL_GetError());
     } else{
-        SDL_Log("Custom controller db was loaded from: %s", pathToSdl2ControllerDb);
+        SDL_Log("Custom controller db was loaded from: %s", g_pathToSDLControllerDB);
     }
 #else
     sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);

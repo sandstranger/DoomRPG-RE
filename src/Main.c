@@ -21,8 +21,8 @@
 extern DoomRPG_t* doomRpg;
 
 #if ANDROID
-typedef void (*forceLandScapeActivityOrientationDelegate)();
-static forceLandScapeActivityOrientationDelegate activityOrientationChangerInstance = nullptr;
+static char *g_pathToZipFile = nullptr;
+static char *g_pathToUserFolder = nullptr;
 #endif
 
 #ifdef ANDROID
@@ -32,7 +32,7 @@ int main(int argc, char* args[])
 #endif
 {
 #ifdef ANDROID
-    chdir(getenv("PATH_TO_USER_FOLDER"));
+    chdir(g_pathToUserFolder);
 #endif
 
 	SDL_Event ev;
@@ -45,7 +45,7 @@ int main(int argc, char* args[])
 	SDL_InitAudio();
 
 #ifdef ANDROID
-    openZipFile(getenv("PATH_TO_RESOURCES"), &zipFile);
+    openZipFile(g_pathToZipFile, &zipFile);
 #else
     openZipFile("DoomRPG.zip", &zipFile);
 #endif
@@ -84,11 +84,6 @@ int main(int argc, char* args[])
 
 		while (SDL_PollEvent(&ev))
 		{
-#if ANDROID
-            if (ev.type == SDL_APP_DIDENTERFOREGROUND && activityOrientationChangerInstance!= nullptr){
-                activityOrientationChangerInstance();
-            }
-#endif
 			// check event type
 			switch (ev.type) {
 
@@ -237,11 +232,24 @@ int main(int argc, char* args[])
 	DoomRPG_FreeAppData(doomRpg);
 	SDL_CloseAudio();
 	SDL_Close();
+    free(g_pathToZipFile);
+    g_pathToZipFile = nullptr;
+    free(g_pathToUserFolder);
+    g_pathToUserFolder = nullptr;
 
 	return 0;
 }
 
 #ifdef ANDROID
+void freeChars(char **targetChars)
+{
+    if (targetChars && *targetChars)
+    {
+        free(*targetChars);
+        *targetChars = nullptr;
+    }
+}
+
 __attribute__((used)) __attribute__((visibility("default")))
 void onNativeResume() {
     if (doomRpg && doomRpg->sound) {
@@ -270,8 +278,11 @@ bool needToReInitGameControllers (){
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
-void registerForceLandscapeActivityOrientationCallback (forceLandScapeActivityOrientationDelegate instance) {
-    activityOrientationChangerInstance = instance;
+void setPathsToResources (const char *pathToArchive, const char *pathToUserFolder) {
+    freeChars(&g_pathToUserFolder);
+    freeChars(&g_pathToZipFile);
+    g_pathToUserFolder = strdup(pathToUserFolder);
+    g_pathToZipFile = strdup(pathToArchive);
 }
 
 #endif
