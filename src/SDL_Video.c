@@ -24,7 +24,7 @@ SDLVidModes_t *sdlVideoModes;
 int generatedVideoModsCount;
 static int g_screenWidth = -1;
 static int g_screenHeight = -1;
-static int g_glesVersionToUse = 3;
+static bool g_useGLES2_0 = false;
 static bool g_recalculateScreenResolutions = true;
 static char *g_pathToSDLControllerDB = nullptr;
 extern void freeChars (char *targetChars);
@@ -70,8 +70,8 @@ void setPathToSDLControllerDB (const char *pathToSDLControllerDB){
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
-void setGLESVersionToUse (const int targetGlESVersion){
-    g_glesVersionToUse = targetGlESVersion;
+void setUseGLES2_0State (const bool useGLES2_0){
+    g_useGLES2_0 = useGLES2_0;
 }
 
 int isDuplicate(SDLVidModes_t* modes, int count, int w, int h) {
@@ -357,12 +357,11 @@ void SDL_InitVideo(void)
 #ifdef ANDROID
     sdlVideo.fullScreen = true;
 
-    bool useLegacyOpenGLES2_0 = g_glesVersionToUse == 2;
-    SDL_Log(useLegacyOpenGLES2_0 ? "Legacy OpenGL ES 2.0 is using for rendering" :
+    SDL_Log(g_useGLES2_0 ? "Legacy OpenGL ES 2.0 is using for rendering" :
             "OpenGL ES 3.2 is using for rendering");
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, useLegacyOpenGLES2_0 ? 2 : 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, useLegacyOpenGLES2_0 ? 0 : 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, g_useGLES2_0 ? 2 : 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, g_useGLES2_0 ? 0 : 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, 1);
 
     SDL_DisplayMode displayMode;
