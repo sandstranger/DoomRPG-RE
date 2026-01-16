@@ -521,7 +521,7 @@ int DoomRPG_Init(void) // 0x3141C
 	doomRpg = SDL_malloc(sizeof(DoomRPG_t));
 #ifdef ANDROID
     doomRpg->enableMachineTextTranslation = g_enableMachineTranslation;
-    doomRpg->enableSDLTTF = g_enableSDLTTF;
+    doomRpg->enableSDLTTF = g_enableSDLTTF || g_enableMachineTranslation;
 #endif
 	doomRpg->memoryBeg = DoomRPG_freeMemory();
 	doomRpg->imageMemory = 0;
