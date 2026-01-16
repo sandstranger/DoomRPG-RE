@@ -26,8 +26,7 @@ static int g_screenWidth = -1;
 static int g_screenHeight = -1;
 static bool g_useGLES2_0 = false;
 static bool g_recalculateScreenResolutions = true;
-static char *g_pathToSDLControllerDB = nullptr;
-extern void freeChars (char *targetChars);
+extern char *g_pathToSDLControllerDB;
 #else
 SDLVidModes_t sdlVideoModes[14] =
 {
@@ -61,12 +60,6 @@ void setScreenResolution (const int screenWidth, const int screenHeight){
 __attribute__((used)) __attribute__((visibility("default")))
 void setRecalculateScreenResolutionsState (const bool recalculateScreenResolutions){
     g_recalculateScreenResolutions = recalculateScreenResolutions;
-}
-
-__attribute__((used)) __attribute__((visibility("default")))
-void setPathToSDLControllerDB (const char *pathToSDLControllerDB){
-    freeChars(&g_pathToSDLControllerDB);
-    g_pathToSDLControllerDB = strdup(pathToSDLControllerDB);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))

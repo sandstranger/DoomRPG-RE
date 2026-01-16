@@ -23,6 +23,7 @@ extern DoomRPG_t* doomRpg;
 #if ANDROID
 static char *g_pathToZipFile = nullptr;
 static char *g_pathToUserFolder = nullptr;
+static char *g_pathToSDLControllerDB = nullptr;
 #endif
 
 #ifdef ANDROID
@@ -232,16 +233,19 @@ int main(int argc, char* args[])
 	DoomRPG_FreeAppData(doomRpg);
 	SDL_CloseAudio();
 	SDL_Close();
+#if ANDROID
     free(g_pathToZipFile);
     g_pathToZipFile = nullptr;
     free(g_pathToUserFolder);
     g_pathToUserFolder = nullptr;
-
+    free(g_pathToSDLControllerDB);
+    g_pathToSDLControllerDB = nullptr;
+#endif
 	return 0;
 }
 
 #ifdef ANDROID
-void freeChars(char **targetChars)
+static void freeChars(char **targetChars)
 {
     if (targetChars && *targetChars)
     {
@@ -285,5 +289,10 @@ void setPathsToResources (const char *pathToArchive, const char *pathToUserFolde
     g_pathToZipFile = strdup(pathToArchive);
 }
 
+__attribute__((used)) __attribute__((visibility("default")))
+void setPathToSDLControllerDB (const char *pathToSDLControllerDB){
+    freeChars(&g_pathToSDLControllerDB);
+    g_pathToSDLControllerDB = strdup(pathToSDLControllerDB);
+}
 #endif
 
