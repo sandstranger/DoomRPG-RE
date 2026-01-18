@@ -103,16 +103,17 @@ Combat_t* Combat_init(Combat_t* combat, DoomRPG_t* doomRpg)
 	return combat;
 }
 
-void Combat_free(Combat_t* combat, boolean freePtr)
+void Combat_free(Combat_t** combatPtr)
 {
-	for (int i = 0; i < 14; i++) {
-		SDL_memset(&combat->monsters[i], 0, sizeof(combat->monsters[i]));
-	}
-	SDL_memset(&combat->aMobj, 0, sizeof(combat->aMobj));
-	SDL_memset(&combat->bMobj, 0, sizeof(combat->bMobj));
-	if (freePtr) {
-		SDL_free(combat);
-	}
+    if (!combatPtr || !*combatPtr)
+        return;
+
+    Combat_t* combat = *combatPtr;
+
+    SDL_memset(combat, 0, sizeof(*combat));
+    SDL_free(combat);
+
+    *combatPtr = NULL;
 }
 
 int Combat_calcParticleIntensity(Combat_t* combat, int i)

@@ -63,7 +63,7 @@ typedef struct Combat_s
 } Combat_t;
 
 Combat_t* Combat_init(Combat_t* combat, DoomRPG_t* doomRpg);
-void Combat_free(Combat_t* combat, boolean freePtr);
+void Combat_free(Combat_t** combat);
 int Combat_calcParticleIntensity(Combat_t* combat, int i);
 int Combat_calcHit(Combat_t* combat, Entity_t* entity, int i);
 void Combat_worldDistToTileDist(Combat_t* combat);

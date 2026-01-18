@@ -656,7 +656,7 @@ void DoomRPG_FreeAppData(DoomRPG_t* doomrpg)
 		return;
 
 	if (doomrpg->combat) {
-		Combat_free(doomrpg->combat, true);
+		Combat_free(&doomrpg->combat);
 	}
 	doomrpg->combat = NULL;
 
