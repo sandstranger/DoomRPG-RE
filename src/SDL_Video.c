@@ -319,7 +319,6 @@ void SDL_InitVideo(void)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAM, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
 #endif
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -383,6 +382,9 @@ void SDL_InitVideo(void)
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
 
+#if ANDROID
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+#endif
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	SDL_SetHint(SDL_HINT_RENDER_VSYNC, sdlVideo.vSync ? "1" : "0");
 
