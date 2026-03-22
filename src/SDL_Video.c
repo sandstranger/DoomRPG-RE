@@ -355,10 +355,10 @@ void SDL_InitVideo(void)
     SDL_GetDesktopDisplayMode(0, &displayMode);
 
     SDL_Log(g_useGLES2_0 ? "Legacy OpenGL ES 2.0 is using for rendering" :
-            "OpenGL ES 3.2 is using for rendering");
+            "OpenGL ES 3.1 is using for rendering");
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, g_useGLES2_0 ? 2 : 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, g_useGLES2_0 ? 0 : 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, g_useGLES2_0 ? 0 : 1);
 
     sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, displayMode.w, displayMode.h, flags);
 
