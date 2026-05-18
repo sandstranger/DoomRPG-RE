@@ -521,7 +521,8 @@ int DoomRPG_Init(void) // 0x3141C
 	int mem;
 	printf("DoomRpg_Init\n");
 
-	doomRpg = SDL_malloc(sizeof(DoomRPG_t));
+	doomRpg = (DoomRPG_t*)SDL_calloc(1, sizeof(DoomRPG_t));
+
 #ifdef ANDROID
     doomRpg->enableMachineTextTranslation = g_enableMachineTranslation;
     doomRpg->enableSDLTTF = g_enableSDLTTF || g_enableMachineTranslation;
@@ -726,6 +727,7 @@ void DoomRPG_FreeAppData(DoomRPG_t* doomrpg)
 	doomrpg->doomCanvas = NULL;
 
 	SDL_free(doomrpg);
+	doomRpg = nullptr;
 }
 
 

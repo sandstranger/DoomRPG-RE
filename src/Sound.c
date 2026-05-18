@@ -47,7 +47,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 
 	if (sound == NULL)
 	{
-		sound = SDL_malloc(sizeof(Sound_t));
+		sound = SDL_calloc(1, sizeof(Sound_t));
 		if (sound == NULL) {
 			return NULL;
 		}
@@ -83,7 +83,7 @@ Sound_t* Sound_init(Sound_t* sound, DoomRPG_t* doomRpg)
 	fluid_settings_setnum(fluidSynth.settings, "synth.gain", 1.0 * ((sound->volume * MIX_MAX_VOLUME) / 100) / 128.0);
 
 #if INIT_ALLSOUNDS
-	sound->audioFiles = SDL_malloc(sizeof(AudioFile_t) * MAX_AUDIOFILES);
+	sound->audioFiles = SDL_calloc(MAX_AUDIOFILES, sizeof(AudioFile_t));
 
 	for (i = 0; i < MAX_AUDIOFILES; i++)
 	{

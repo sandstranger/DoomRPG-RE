@@ -22,6 +22,7 @@ extern DoomRPG_t* doomRpg;
 
 #if ANDROID
 static char *g_pathToZipFile = nullptr;
+static bool gameWasStarted = false;
 char *g_pathToUserFolder = nullptr;
 char *g_pathToSDLControllerDB = nullptr;
 
@@ -42,6 +43,7 @@ int main(int argc, char* args[])
 #endif
 {
 #ifdef ANDROID
+    doomRpg = nullptr;
     chdir(g_pathToUserFolder);
 #endif
 
@@ -83,7 +85,10 @@ int main(int argc, char* args[])
 
 	key = 0;
 	oldKey = -1;
-	
+
+#if ANDROID
+	gameWasStarted = true;
+#endif
 	
 	while (doomRpg->closeApplet != true)
 	{
@@ -183,6 +188,12 @@ int main(int argc, char* args[])
 					}
 
 					if (ev.window.event == SDL_WINDOWEVENT_CLOSE) {
+#if ANDROID
+                        gameWasStarted = false;
+                        freeChars(&g_pathToZipFile);
+                        freeChars(&g_pathToUserFolder);
+                        freeChars(&g_pathToSDLControllerDB);
+#endif
 						SDL_Log("Window %d closed", ev.window.windowID);
 						closeZipFile(&zipFile);
 						DoomRPG_FreeAppData(doomRpg);
@@ -237,7 +248,9 @@ int main(int argc, char* args[])
 			DoomRPG_loopGame(doomRpg);
 		}
 	}
-
+#if ANDROID
+    gameWasStarted = false;
+#endif
 	closeZipFile(&zipFile);
 	DoomRPG_FreeAppData(doomRpg);
 	SDL_CloseAudio();
@@ -251,18 +264,34 @@ int main(int argc, char* args[])
 }
 
 #ifdef ANDROID
+static bool soundWasPaused = false;
+
 __attribute__((used)) __attribute__((visibility("default")))
 void onNativeResume() {
-    if (doomRpg && doomRpg->sound) {
-        Sound_resumeAll(doomRpg->sound);
-    }
+    DoomRPG_t* rpg = doomRpg;
+    if (!rpg) return;
+
+    Sound_t* snd = rpg->sound;
+    if (!snd) return;
+
+    if (!snd->soundEnabled || !soundWasPaused || !gameWasStarted) return;
+
+    soundWasPaused = false;
+    Sound_resumeAll(snd);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
 void onNativePause() {
-    if (doomRpg && doomRpg->sound) {
-        Sound_pauseAll(doomRpg->sound);
-    }
+    DoomRPG_t* rpg = doomRpg;
+    if (!rpg) return;
+
+    Sound_t* snd = rpg->sound;
+    if (!snd) return;
+
+    if (!gameWasStarted || !snd->soundEnabled) return;
+
+    soundWasPaused = true;
+    Sound_pauseAll(snd);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
