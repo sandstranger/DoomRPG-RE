@@ -491,7 +491,10 @@ TTF_Font* DoomRPG_LoadTTFFont(const char* fontPath, int size) {
         return NULL;
     }
 
-    TTF_Font* font = TTF_OpenFont(fontPath, size);
+	extern char *g_pathToUserFolder;
+	char fullPath[2048];
+	snprintf(fullPath,sizeof(fullPath),"%s/%s",g_pathToUserFolder,fontPath);
+    TTF_Font* font = TTF_OpenFont(fullPath, size);
 
     if (!font) {
         SDL_Log("Failed to load font: %s", TTF_GetError());

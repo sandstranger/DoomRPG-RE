@@ -22,7 +22,7 @@ extern DoomRPG_t* doomRpg;
 
 #if ANDROID
 static char *g_pathToZipFile = nullptr;
-static char *g_pathToUserFolder = nullptr;
+char *g_pathToUserFolder = nullptr;
 char *g_pathToSDLControllerDB = nullptr;
 
 static void freeChars(char **targetChars)
