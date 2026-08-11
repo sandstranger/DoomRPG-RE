@@ -22,7 +22,6 @@ extern DoomRPG_t* doomRpg;
 
 #if ANDROID
 static char *g_pathToZipFile = nullptr;
-static bool gameWasStarted = false;
 char *g_pathToUserFolder = nullptr;
 char *g_pathToSDLControllerDB = nullptr;
 
@@ -37,6 +36,8 @@ static void freeChars(char **targetChars)
 #endif
 
 #ifdef ANDROID
+static int SDLCALL AndroidLifeCycleEventFilter(void*, SDL_Event* event);
+
 int SDL_main(int argc, char **argv)
 #else
 int main(int argc, char* args[])
@@ -55,8 +56,8 @@ int main(int argc, char* args[])
 	Z_Init();
 	SDL_InitVideo();
 	SDL_InitAudio();
-
 #ifdef ANDROID
+	SDL_AddEventWatch(AndroidLifeCycleEventFilter, nullptr);
     openZipFile(g_pathToZipFile, &zipFile);
 #else
     openZipFile("DoomRPG.zip", &zipFile);
@@ -86,10 +87,6 @@ int main(int argc, char* args[])
 	key = 0;
 	oldKey = -1;
 
-#if ANDROID
-	gameWasStarted = true;
-#endif
-	
 	while (doomRpg->closeApplet != true)
 	{
 
@@ -189,7 +186,6 @@ int main(int argc, char* args[])
 
 					if (ev.window.event == SDL_WINDOWEVENT_CLOSE) {
 #if ANDROID
-                        gameWasStarted = false;
                         freeChars(&g_pathToZipFile);
                         freeChars(&g_pathToUserFolder);
                         freeChars(&g_pathToSDLControllerDB);
@@ -248,9 +244,6 @@ int main(int argc, char* args[])
 			DoomRPG_loopGame(doomRpg);
 		}
 	}
-#if ANDROID
-    gameWasStarted = false;
-#endif
 	closeZipFile(&zipFile);
 	DoomRPG_FreeAppData(doomRpg);
 	SDL_CloseAudio();
@@ -268,13 +261,16 @@ static bool soundWasPaused = false;
 
 __attribute__((used)) __attribute__((visibility("default")))
 void onNativeResume() {
+}
+
+static void onResume() {
     DoomRPG_t* rpg = doomRpg;
     if (!rpg) return;
 
     Sound_t* snd = rpg->sound;
     if (!snd) return;
 
-    if (!snd->soundEnabled || !soundWasPaused || !gameWasStarted) return;
+    if (!snd->soundEnabled || !soundWasPaused) return;
 
     soundWasPaused = false;
     Sound_resumeAll(snd);
@@ -282,16 +278,34 @@ void onNativeResume() {
 
 __attribute__((used)) __attribute__((visibility("default")))
 void onNativePause() {
+}
+
+static void onPause() {
     DoomRPG_t* rpg = doomRpg;
     if (!rpg) return;
 
     Sound_t* snd = rpg->sound;
     if (!snd) return;
 
-    if (!gameWasStarted || !snd->soundEnabled) return;
+    if (!snd->soundEnabled) return;
 
     soundWasPaused = true;
     Sound_pauseAll(snd);
+}
+
+static int SDLCALL AndroidLifeCycleEventFilter(void*, SDL_Event* event)
+{
+	switch (event->type)
+	{
+		case SDL_APP_WILLENTERBACKGROUND:
+			onPause();
+			break;
+		case SDL_APP_DIDENTERFOREGROUND:
+			onResume();
+			break;
+	}
+
+	return 1;
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
