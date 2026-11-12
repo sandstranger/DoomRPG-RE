@@ -543,10 +543,20 @@ void SDL_InitAudio(void)
 		DoomRPG_Error("Failed to create the synthesizer");
 	}
 
+#ifdef ANDROID
+	// The driver by name: the default is the first one fluidsynth was built with, and a build
+	// that found OSS headers in the NDK put OSS (/dev/dsp, not on Android) before Oboe.
+	if (fluid_settings_setstr(fluidSynth.settings, "audio.driver", "oboe") != FLUID_OK) {
+		SDL_Log("fluidsynth has no oboe audio driver, using its default");
+	}
+#endif
+
 	// create the audio driver
 	fluidSynth.adriver = new_fluid_audio_driver(fluidSynth.settings, fluidSynth.synth);
-	if (fluidSynth.synth == NULL) {
-		DoomRPG_Error("Failed to create the audio driver");
+	if (fluidSynth.adriver == NULL) {
+		// it checked the synth before and never fired: the game went on silently without music.
+		// Still not fatal, the sound effects play through SDL_mixer
+		SDL_Log("Failed to create the fluidsynth audio driver, no music");
 	}
 
 	if (fluid_is_soundfont("gm.sf2")) {
