@@ -78,7 +78,9 @@ static void Z_RemoveBlock(memblock_t* block) {
 void Z_Init(void) {
     SDL_memset(allocated_blocks, 0, sizeof(allocated_blocks));
 
-    //SDL_GetMemoryFunctions(&malloc_func, &calloc_func, &realloc_func, &free_func);
+    // (the allocator's functions: Z_Malloc etc. called through null pointers without this - link time optimization made them
+    // unreachable code. Nothing calls them as long as SDL_SetMemoryFunctions stays off, but then they work)
+    SDL_GetMemoryFunctions(&malloc_func, &calloc_func, &realloc_func, &free_func);
     //SDL_SetMemoryFunctions(Z_Malloc, Z_Calloc, Z_Realloc, Z_Free);
 }
 

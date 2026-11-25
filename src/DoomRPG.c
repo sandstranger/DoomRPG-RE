@@ -42,13 +42,14 @@ keyMapping_t keyMappingDefault[12] = {
 static bool g_enableSDLTTF = false;
 static bool g_enableMachineTranslation = false;
 
+// (both set on the java side's thread and read on the game's: atomically)
 __attribute__((used)) __attribute__((visibility("default")))
-void setEnableSDLTTFState (const bool enableSDLTTF){
-    g_enableSDLTTF = enableSDLTTF;
+void setEnableSDLTTFState (const int enableSDLTTF){   // (an int: JNA passes a java 'boolean' as a 32 bit int)
+    __atomic_store_n(&g_enableSDLTTF, enableSDLTTF != 0, __ATOMIC_RELAXED);
 }
 __attribute__((used)) __attribute__((visibility("default")))
-void setEnableMachineTranslationState (const bool enableMachineTranslation){
-    g_enableMachineTranslation = enableMachineTranslation;
+void setEnableMachineTranslationState (const int enableMachineTranslation){
+    __atomic_store_n(&g_enableMachineTranslation, enableMachineTranslation != 0, __ATOMIC_RELAXED);
 }
 #endif
 
@@ -494,7 +495,8 @@ TTF_Font* DoomRPG_LoadTTFFont(const char* fontPath, int size) {
 
 	extern char *g_pathToUserFolder;
 	char fullPath[2048];
-	snprintf(fullPath,sizeof(fullPath),"%s/%s",g_pathToUserFolder,fontPath);
+	const char *userFolder = __atomic_load_n(&g_pathToUserFolder, __ATOMIC_ACQUIRE);	// (set on the java side's thread)
+	snprintf(fullPath,sizeof(fullPath),"%s/%s",userFolder ? userFolder : ".",fontPath);
     TTF_Font* font = TTF_OpenFont(fullPath, size);
 
     if (!font) {
@@ -525,8 +527,8 @@ int DoomRPG_Init(void) // 0x3141C
 	doomRpg = (DoomRPG_t*)SDL_calloc(1, sizeof(DoomRPG_t));
 
 #ifdef ANDROID
-    doomRpg->enableMachineTextTranslation = g_enableMachineTranslation;
-    doomRpg->enableSDLTTF = g_enableSDLTTF || g_enableMachineTranslation;
+    doomRpg->enableMachineTextTranslation = __atomic_load_n(&g_enableMachineTranslation, __ATOMIC_RELAXED);
+    doomRpg->enableSDLTTF = __atomic_load_n(&g_enableSDLTTF, __ATOMIC_RELAXED) || doomRpg->enableMachineTextTranslation;
 #endif
 	doomRpg->memoryBeg = DoomRPG_freeMemory();
 	doomRpg->imageMemory = 0;

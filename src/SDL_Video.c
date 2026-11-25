@@ -51,20 +51,21 @@ SDLVidModes_t sdlVideoModes[14] =
 #define MIN_WIDTH 100
 #define MIN_HEIGHT 60
 
+// (all set on the java side's thread and read on the game's: atomically)
 __attribute__((used)) __attribute__((visibility("default")))
 void setScreenResolution (const int screenWidth, const int screenHeight){
-    g_screenWidth = screenWidth;
-    g_screenHeight = screenHeight;
+    __atomic_store_n(&g_screenWidth, screenWidth, __ATOMIC_RELAXED);
+    __atomic_store_n(&g_screenHeight, screenHeight, __ATOMIC_RELAXED);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
-void setRecalculateScreenResolutionsState (const bool recalculateScreenResolutions){
-    g_recalculateScreenResolutions = recalculateScreenResolutions;
+void setRecalculateScreenResolutionsState (const int recalculateScreenResolutions){ // (an int: JNA passes a java 'boolean' as a 32 bit int)
+    __atomic_store_n(&g_recalculateScreenResolutions, recalculateScreenResolutions != 0, __ATOMIC_RELAXED);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
-void setUseGLES2_0State (const bool useGLES2_0){
-    g_useGLES2_0 = useGLES2_0;
+void setUseGLES2_0State (const int useGLES2_0){   // (an int: JNA passes a java 'boolean' as a 32 bit int)
+    __atomic_store_n(&g_useGLES2_0, useGLES2_0 != 0, __ATOMIC_RELAXED);
 }
 
 int isDuplicate(SDLVidModes_t* modes, int count, int w, int h) {
@@ -287,7 +288,7 @@ void SDL_InitVideo(void)
     sdlVideo.vSync = true;
     sdlVideo.integerScaling = false;
 
-    sdlVideoModes = generateVideoModes(g_screenWidth,g_screenHeight,
+    sdlVideoModes = generateVideoModes(__atomic_load_n(&g_screenWidth, __ATOMIC_RELAXED), __atomic_load_n(&g_screenHeight, __ATOMIC_RELAXED),
                                              &generatedVideoModsCount, 1);
     sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
 
@@ -295,7 +296,7 @@ void SDL_InitVideo(void)
 
 	Game_loadConfig(NULL);
 #ifdef ANDROID
-    if (g_recalculateScreenResolutions){
+    if (__atomic_load_n(&g_recalculateScreenResolutions, __ATOMIC_RELAXED)){
         sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
     }
 #endif
@@ -360,10 +361,11 @@ void SDL_InitVideo(void)
 		DoomRPG_Error("Could not set %dx%d video mode: %s", displayMode.w, displayMode.h, SDL_GetError());
     }
 
-    if (SDL_GameControllerAddMappingsFromFile(g_pathToSDLControllerDB) < 0) {
+    const char *pathToSDLControllerDB = __atomic_load_n(&g_pathToSDLControllerDB, __ATOMIC_ACQUIRE);  // (set on the java side's thread)
+    if (!pathToSDLControllerDB || SDL_GameControllerAddMappingsFromFile(pathToSDLControllerDB) < 0) {
         SDL_Log("Couldn't load mappings: %s\n", SDL_GetError());
     } else{
-        SDL_Log("Custom controller db was loaded from: %s", g_pathToSDLControllerDB);
+        SDL_Log("Custom controller db was loaded from: %s", pathToSDLControllerDB);
     }
 #else
     sdlVideo.window = SDL_CreateWindow("DoomRPG", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, video_w, video_h, flags);

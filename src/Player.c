@@ -152,9 +152,9 @@ void Player_nextLevel(Player_t* player)
 	}
 
 	strncpy(text, MenuSystem_buildDivider(player->doomRpg->menuSystem, "Level up!"), sizeof(text));
-	strncat(text, "|", sizeof(text));
+	strncat(text, "|", sizeof(text) - strlen(text) - 1);
 	SDL_snprintf(msg, sizeof(msg), "Level: %d|", player->level);
-	strncat(text, msg, sizeof(text));
+	strncat(text, msg, sizeof(text) - strlen(text) - 1);
 
 	int nextInt = 3 + ((DoomRPG_randNextInt(&player->doomRpg->random) & 255) % 3);
 	int b = CombatEntity_getMaxHealth(ce);
@@ -164,7 +164,7 @@ void Player_nextLevel(Player_t* player)
 	if (nextInt != 0) {
 		CombatEntity_setMaxHealth(ce, b + nextInt);
 		SDL_snprintf(msg, sizeof(msg), "Max Health: +%d|", nextInt);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
 	CombatEntity_setHealth(ce, b + nextInt);
 
@@ -176,7 +176,7 @@ void Player_nextLevel(Player_t* player)
 	if (nextInt2 != 0) {
 		CombatEntity_setMaxArmor(ce, d + nextInt2);
 		SDL_snprintf(msg, sizeof(msg), "Max Armor: +%d|", nextInt2);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
 
 	int nextInt3 = 1 + ((DoomRPG_randNextInt(&player->doomRpg->random) & 255) % 2);
@@ -186,7 +186,7 @@ void Player_nextLevel(Player_t* player)
 	if (nextInt3 != 0) {
 		CombatEntity_setDefense(ce, CombatEntity_getDefense(ce) + nextInt3);
 		SDL_snprintf(msg, sizeof(msg), "Defense: +%d|", nextInt3);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
 
 	int nextInt4 = 1 + ((DoomRPG_randNextInt(&player->doomRpg->random) & 255) % 2);
@@ -196,7 +196,7 @@ void Player_nextLevel(Player_t* player)
 	if (nextInt4 != 0) {
 		CombatEntity_setStrength(ce, CombatEntity_getStrength(ce) + nextInt4);
 		SDL_snprintf(msg, sizeof(msg), "Strength: +%d|", nextInt4);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
 
 	int nextInt5 = 1 + ((DoomRPG_randNextInt(&player->doomRpg->random) & 255) % 2);
@@ -206,7 +206,7 @@ void Player_nextLevel(Player_t* player)
 	if (nextInt5 != 0) {
 		CombatEntity_setAgility(ce, CombatEntity_getAgility(ce) + nextInt5);
 		SDL_snprintf(msg, sizeof(msg), "Agility: +%d|", nextInt5);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
 
 	int nextInt6 = 1 + ((DoomRPG_randNextInt(&player->doomRpg->random) & 255) % 2);
@@ -216,10 +216,10 @@ void Player_nextLevel(Player_t* player)
 	if (nextInt6 != 0) {
 		CombatEntity_setAccuracy(ce, CombatEntity_getAccuracy(ce) + nextInt6);
 		SDL_snprintf(msg, sizeof(msg), "Accuracy: +%d|", nextInt5);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
 
-	strncat(text, "|Health restored.", sizeof(text));
+	strncat(text, "|Health restored.", sizeof(text) - strlen(text) - 1);
 	if (player->doomRpg->doomCanvas->state != ST_MENU) {
 		player->doomRpg->game->tileEvent = 0;
 		DoomCanvas_startDialog(player->doomRpg->doomCanvas, text, false);
@@ -532,14 +532,14 @@ void Player_pain(Player_t* player, int i, int i2)
 
 	combat = player->doomRpg->combat;
 	if ((combat->curTarget == NULL) && (combat->gotCrit)) {
-		strncat(text, "Crit! ", sizeof(text));
+		strncat(text, "Crit! ", sizeof(text) - strlen(text) - 1);
 	}
 
 	dogDied = false;
 	damage = (i + i2);
 
 	if ((player->weapon == 9 || player->weapon == 10 || player->weapon == 11) && player->ammo[5] > 0) {
-		strncat(text, "Dog took ", sizeof(text));
+		strncat(text, "Dog took ", sizeof(text) - strlen(text) - 1);
 
 		dogDamage = (int)player->ammo[5] - damage;
 		if (dogDamage < 0) {
@@ -571,18 +571,18 @@ void Player_pain(Player_t* player, int i, int i2)
 		}
 
 		SDL_snprintf(msg, sizeof(msg), "%d", damage);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 		i = 0;
 		i2 = 0;
 	}
 	else {
 		SDL_snprintf(msg, sizeof(msg), "%d", damage);
-		strncat(text, msg, sizeof(text));
+		strncat(text, msg, sizeof(text) - strlen(text) - 1);
 	}
-	strncat(text, " damage!", sizeof(text));
+	strncat(text, " damage!", sizeof(text) - strlen(text) - 1);
 
 	if (dogDied) {
-		strncat(text, " Dog died!", sizeof(text));
+		strncat(text, " Dog died!", sizeof(text) - strlen(text) - 1);
 	}
 
 	Hud_addMessage(player->doomRpg->hud, text);

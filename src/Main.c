@@ -21,17 +21,22 @@
 extern DoomRPG_t* doomRpg;
 
 #if ANDROID
+// Set by the launcher through JNA, on the java side's thread; read on the game's with __atomic_load_n (atomic publication).
+// A setter publishes a new copy and never frees the old one: the game may be using it.
 static char *g_pathToZipFile = nullptr;
 char *g_pathToUserFolder = nullptr;
 char *g_pathToSDLControllerDB = nullptr;
 
 static void freeChars(char **targetChars)
 {
-    if (targetChars && *targetChars)
-    {
-        free(*targetChars);
-        *targetChars = nullptr;
-    }
+    if (targetChars)
+        free(__atomic_exchange_n(targetChars, (char*)nullptr, __ATOMIC_ACQ_REL));
+}
+
+static void publishChars(char **targetChars, const char *value)
+{
+    char *copy = strdup(value ? value : "");    // (JNA passes null for a null String: strdup(null) crashed)
+    __atomic_exchange_n(targetChars, copy, __ATOMIC_ACQ_REL);   // (the old copy is not freed: the game may still hold it)
 }
 #endif
 
@@ -45,7 +50,11 @@ int main(int argc, char* args[])
 {
 #ifdef ANDROID
     doomRpg = nullptr;
-    chdir(g_pathToUserFolder);
+    {
+        const char *userFolder = __atomic_load_n(&g_pathToUserFolder, __ATOMIC_ACQUIRE);
+        if (userFolder)
+            chdir(userFolder);
+    }
 #endif
 
 	SDL_Event ev;
@@ -58,7 +67,7 @@ int main(int argc, char* args[])
 	SDL_InitAudio();
 #ifdef ANDROID
 	SDL_AddEventWatch(AndroidLifeCycleEventFilter, nullptr);
-    openZipFile(g_pathToZipFile, &zipFile);
+    openZipFile(__atomic_load_n(&g_pathToZipFile, __ATOMIC_ACQUIRE), &zipFile);
 #else
     openZipFile("DoomRPG.zip", &zipFile);
 #endif
@@ -193,6 +202,9 @@ int main(int argc, char* args[])
 						SDL_Log("Window %d closed", ev.window.windowID);
 						closeZipFile(&zipFile);
 						DoomRPG_FreeAppData(doomRpg);
+#ifdef ANDROID
+						SDL_DelEventWatch(AndroidLifeCycleEventFilter, nullptr);	// (it uses the synth SDL_CloseAudio deletes)
+#endif
 						SDL_CloseAudio();
 						SDL_Close();
 						exit(0);
@@ -246,6 +258,9 @@ int main(int argc, char* args[])
 	}
 	closeZipFile(&zipFile);
 	DoomRPG_FreeAppData(doomRpg);
+#ifdef ANDROID
+	SDL_DelEventWatch(AndroidLifeCycleEventFilter, nullptr);	// (it uses the synth SDL_CloseAudio deletes)
+#endif
 	SDL_CloseAudio();
 	SDL_Close();
 #if ANDROID
@@ -263,17 +278,18 @@ __attribute__((used)) __attribute__((visibility("default")))
 void onNativeResume() {
 }
 
+// The lifecycle event watch runs on the java side's thread: only thread safe calls here. It paused the game's channels
+// (Sound_pauseAll), reading and changing their flags and players while the game's thread played and stopped sounds. Now
+// SDL_mixer's channels are paused (it locks the audio device itself), and the music, which fluidsynth plays through its
+// own audio driver, is silenced through the synth's gain (its api is thread safe), given back from the settings on resume.
 static void onResume() {
-    DoomRPG_t* rpg = doomRpg;
-    if (!rpg) return;
+    double gain = 0;
 
-    Sound_t* snd = rpg->sound;
-    if (!snd) return;
+    if (!__atomic_exchange_n(&soundWasPaused, false, __ATOMIC_ACQ_REL)) return;
 
-    if (!snd->soundEnabled || !soundWasPaused) return;
-
-    soundWasPaused = false;
-    Sound_resumeAll(snd);
+    Mix_Resume(-1);
+    if (fluidSynth.synth && fluidSynth.settings && fluid_settings_getnum(fluidSynth.settings, "synth.gain", &gain) == FLUID_OK)
+        fluid_synth_set_gain(fluidSynth.synth, (float)gain);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
@@ -281,16 +297,10 @@ void onNativePause() {
 }
 
 static void onPause() {
-    DoomRPG_t* rpg = doomRpg;
-    if (!rpg) return;
-
-    Sound_t* snd = rpg->sound;
-    if (!snd) return;
-
-    if (!snd->soundEnabled) return;
-
-    soundWasPaused = true;
-    Sound_pauseAll(snd);
+    Mix_Pause(-1);
+    if (fluidSynth.synth)
+        fluid_synth_set_gain(fluidSynth.synth, 0.0f);
+    __atomic_store_n(&soundWasPaused, true, __ATOMIC_RELEASE);
 }
 
 static int SDLCALL AndroidLifeCycleEventFilter(void*, SDL_Event* event)
@@ -308,31 +318,30 @@ static int SDLCALL AndroidLifeCycleEventFilter(void*, SDL_Event* event)
 	return 1;
 }
 
+// The queries return an int: JNA reads a java 'boolean' result as a 32 bit int, and of a returned C/C++ 'bool' only the
+// low byte is defined on arm64 (AAPCS64 leaves the rest of the register unspecified).
 __attribute__((used)) __attribute__((visibility("default")))
-boolean needToShowScreenControls() {
-    return true;
+int needToShowScreenControls() {
+    return 1;
 }
 __attribute__((used)) __attribute__((visibility("default")))
-bool needToInvokeMouseButtonsEvents(){
-    return true;
+int needToInvokeMouseButtonsEvents(){
+    return 1;
 }
 __attribute__((used)) __attribute__((visibility("default")))
-bool needToReInitGameControllers (){
-    return false;
+int needToReInitGameControllers (){
+    return 0;
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
 void setPathsToResources (const char *pathToArchive, const char *pathToUserFolder) {
-    freeChars(&g_pathToUserFolder);
-    freeChars(&g_pathToZipFile);
-    g_pathToUserFolder = strdup(pathToUserFolder);
-    g_pathToZipFile = strdup(pathToArchive);
+    publishChars(&g_pathToUserFolder, pathToUserFolder);
+    publishChars(&g_pathToZipFile, pathToArchive);
 }
 
 __attribute__((used)) __attribute__((visibility("default")))
 void setPathToSDLControllerDB (const char *pathToSDLControllerDB){
-    freeChars(&g_pathToSDLControllerDB);
-    g_pathToSDLControllerDB = strdup(pathToSDLControllerDB);
+    publishChars(&g_pathToSDLControllerDB, pathToSDLControllerDB);
 }
 #endif
 
