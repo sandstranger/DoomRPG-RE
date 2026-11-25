@@ -2002,10 +2002,12 @@ void DoomCanvas_drawFontTTF(DoomCanvas_t* doomCanvas,
 
 void DoomCanvas_drawFont(DoomCanvas_t* doomCanvas, char* text, int x, int y, int flags, int strBeg, int strEnd, boolean isLargerFont)
 {
+#ifdef ANDROID	// (the TTF drawing is android's only)
     if (doomCanvas->doomRpg->enableSDLTTF) {
         DoomCanvas_drawFontTTF(doomCanvas, text, x, y, flags, strBeg, strEnd, isLargerFont);
         return;
     }
+#endif
 
 	Image_t* imgFont;
 	int iVar4, width, height, len, xpos, i;
@@ -2473,7 +2475,6 @@ void DoomCanvas_handleMenuEvents(DoomCanvas_t* doomCanvas, int i) {
 	if ((k > 9) || MenuSystem_enterDigit(doomCanvas->doomRpg->menuSystem, k) == false)
 	{
 		keyAction = DoomCanvas_getKeyAction(doomCanvas, menuKey);
-		//printf("keyAction %d\n", keyAction);
 
 		switch (keyAction)
 		{
@@ -3793,7 +3794,7 @@ void DoomCanvas_setState(DoomCanvas_t* doomCanvas, int stateNum)
 
 byte DoomCanvas_checkState(DoomCanvas_t* doomCanvas)
 {
-
+	return 0;	// (it returned nothing)
 }
 
 void DoomCanvas_invalidateRectAndUpdateView(DoomCanvas_t* doomCanvas)

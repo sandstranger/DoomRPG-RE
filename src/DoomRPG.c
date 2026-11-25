@@ -24,18 +24,18 @@ DoomRPG_t* doomRpg = NULL;
 keyMapping_t keyMapping[12];
 keyMapping_t keyMappingTemp[12];
 keyMapping_t keyMappingDefault[12] = {
-	{AVK_UP | AVK_MENU_UP,				{SDL_SCANCODE_UP,SDL_SCANCODE_W, CONTROLLER_BUTTON_DPAD_UP | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_UP | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move forward
-	{AVK_DOWN | AVK_MENU_DOWN,			{SDL_SCANCODE_DOWN,SDL_SCANCODE_S,CONTROLLER_BUTTON_DPAD_DOWN | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_DOWN | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move backward
-	{AVK_LEFT | AVK_MENU_PAGE_UP,		{SDL_SCANCODE_LEFT,CONTROLLER_BUTTON_DPAD_LEFT | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_LEFT | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Turn left/page up
-	{AVK_RIGHT | AVK_MENU_PAGE_DOWN,	{SDL_SCANCODE_RIGHT,CONTROLLER_BUTTON_DPAD_RIGHT | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_RIGHT | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Turn right/page down
-	{AVK_MOVELEFT,						{SDL_SCANCODE_A,CONTROLLER_BUTTON_LEFT_BUMPER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move left
-	{AVK_MOVERIGHT,						{SDL_SCANCODE_D,CONTROLLER_BUTTON_RIGHT_BUMPER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move right
-	{AVK_NEXTWEAPON,					{SDL_SCANCODE_Z,CONTROLLER_BUTTON_RIGHT_TRIGGER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Next weapon
-	{AVK_PREVWEAPON,					{SDL_SCANCODE_X,CONTROLLER_BUTTON_LEFT_TRIGGER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Prev weapon
-	{AVK_SELECT | AVK_MENU_SELECT,		{SDL_SCANCODE_RETURN,CONTROLLER_BUTTON_A | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1.-1}}, // Attack/Talk/Use
-	{AVK_PASSTURN,						{SDL_SCANCODE_C,CONTROLLER_BUTTON_X | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Pass Turn
-	{AVK_AUTOMAP,						{SDL_SCANCODE_TAB,CONTROLLER_BUTTON_BACK | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}}, // Automap
-	{AVK_MENUOPEN | AVK_MENU_OPEN,		{SDL_SCANCODE_ESCAPE,CONTROLLER_BUTTON_START | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1,-1}} // Open menu/back
+	{AVK_UP | AVK_MENU_UP,				{SDL_SCANCODE_UP,SDL_SCANCODE_W,CONTROLLER_BUTTON_DPAD_UP | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_UP | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1}}, // Move forward
+	{AVK_DOWN | AVK_MENU_DOWN,			{SDL_SCANCODE_DOWN,SDL_SCANCODE_S,CONTROLLER_BUTTON_DPAD_DOWN | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_DOWN | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1}}, // Move backward
+	{AVK_LEFT | AVK_MENU_PAGE_UP,		{SDL_SCANCODE_LEFT,CONTROLLER_BUTTON_DPAD_LEFT | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_LEFT | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1}}, // Turn left/page up
+	{AVK_RIGHT | AVK_MENU_PAGE_DOWN,	{SDL_SCANCODE_RIGHT,CONTROLLER_BUTTON_DPAD_RIGHT | IS_CONTROLLER_BUTTON,CONTROLLER_BUTTON_LAXIS_RIGHT | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1}}, // Turn right/page down
+	{AVK_MOVELEFT,						{SDL_SCANCODE_A,CONTROLLER_BUTTON_LEFT_BUMPER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move left
+	{AVK_MOVERIGHT,						{SDL_SCANCODE_D,CONTROLLER_BUTTON_RIGHT_BUMPER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Move right
+	{AVK_NEXTWEAPON,					{SDL_SCANCODE_Z,CONTROLLER_BUTTON_RIGHT_TRIGGER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Next weapon
+	{AVK_PREVWEAPON,					{SDL_SCANCODE_X,CONTROLLER_BUTTON_LEFT_TRIGGER | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Prev weapon
+	{AVK_SELECT | AVK_MENU_SELECT,		{SDL_SCANCODE_RETURN,CONTROLLER_BUTTON_A | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Attack/Talk/Use
+	{AVK_PASSTURN,						{SDL_SCANCODE_C,CONTROLLER_BUTTON_X | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Pass Turn
+	{AVK_AUTOMAP,						{SDL_SCANCODE_TAB,CONTROLLER_BUTTON_BACK | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}}, // Automap
+	{AVK_MENUOPEN | AVK_MENU_OPEN,		{SDL_SCANCODE_ESCAPE,CONTROLLER_BUTTON_START | IS_CONTROLLER_BUTTON,-1,-1,-1,-1,-1,-1,-1,-1}} // Open menu/back
 };
 
 #if ANDROID
@@ -211,7 +211,8 @@ int DoomRPG_getEventKey(int mouse_Button, const Uint8* state) {
 			for (j = 0; j < KEYBINDS_MAX; j++) {
 				if (!(keyMapping[i].keyBinds[j] & (IS_CONTROLLER_BUTTON | IS_MOUSE_BUTTON)))
 				{
-					if (state[keyMapping[i].keyBinds[j]]) {
+					// (a scancode from the config file: an index into SDL's key state, whatever was saved there)
+					if (keyMapping[i].keyBinds[j] > 0 && keyMapping[i].keyBinds[j] < SDL_NUM_SCANCODES && state[keyMapping[i].keyBinds[j]]) {
 						key = keyMapping[i].avk_action;
 						break;
 					}
@@ -1167,7 +1168,7 @@ byte DoomRPG_randNextByte(Random_t* rand)
 
 int DoomRPG_randNextInt(Random_t* rand)
 {
-	int next, * rnd;
+	int next, value;
 
 	if ((rand->nextRand + sizeof(int)) >= RANDTABLESIZE) {
 		DoomRPG_setRand(rand);
@@ -1176,8 +1177,10 @@ int DoomRPG_randNextInt(Random_t* rand)
 	next = rand->nextRand;
 	rand->nextRand = next + sizeof(int);
 
-	rnd = (int*)rand->randTable;
-	return rnd[next];
+	// the 4 bytes at byte offset next: it read the int at index next of the table taken as ints, 4 times as far (past
+	// the table, into the rest of the heap) and unaligned
+	SDL_memcpy(&value, &rand->randTable[next], sizeof(value));
+	return value;
 }
 
 void DoomRPG_notifyDestroyed(DoomRPG_t* doomrpg)
@@ -1234,7 +1237,7 @@ void File_writeLong(SDL_RWops* rw, int i)
 
 boolean File_readBoolean(SDL_RWops* rw)
 {
-	char boolData;
+	char boolData = 0;	// (what's left when the file is short)
 
 	if (rw) {
 		SDL_RWread(rw, &boolData, sizeof(byte), 1);
@@ -1280,7 +1283,7 @@ uint16_t File_readShort(SDL_RWops* rw)
 
 int File_readInt(SDL_RWops* rw)
 {
-	int iData;
+	int iData = 0;	// (what's left when the file is short)
 
 	if (rw) {
 		SDL_RWread(rw, &iData, sizeof(int), 1);
@@ -1289,6 +1292,23 @@ int File_readInt(SDL_RWops* rw)
 	return (int)SDL_SwapLE32(iData);
 }
 
+
+// len bytes of the file into dst, as many of them as fit with a terminating 0, the rest skipped
+void File_readString(SDL_RWops* rw, char* dst, int dstSize, int len)
+{
+	int n = (len < 0) ? 0 : (len < dstSize - 1) ? len : dstSize - 1;
+
+	SDL_memset(dst, 0, dstSize);
+	if (rw) {
+		if (n > 0) {
+			SDL_RWread(rw, dst, n, 1);
+		}
+		if (len > n) {
+			SDL_RWseek(rw, len - n, RW_SEEK_CUR);
+		}
+	}
+	dst[dstSize - 1] = '\0';
+}
 
 uint32_t File_readLong(SDL_RWops* rw)
 {

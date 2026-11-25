@@ -2,6 +2,7 @@
 #ifndef DOOMRPG_H__
 #define DOOMRPG_H__
 
+#include <SDL.h>	// (its types are used below: only android's SDL_ttf.h brought it in)
 #ifdef ANDROID
 #include "SDL_ttf.h"
 #endif
@@ -254,10 +255,8 @@ typedef struct DoomRPG_s
 	char			errorStr[64];
 	boolean			closeApplet;
 	int				imageMemory;
-#ifdef ANDROID
-    boolean enableSDLTTF;
+    boolean enableSDLTTF;	// (android's settings: off elsewhere, but read everywhere)
     boolean enableMachineTextTranslation;
-#endif
 } DoomRPG_t;
 
 typedef struct Image_s
@@ -336,5 +335,6 @@ int File_readByte(SDL_RWops* rw);
 uint16_t File_readShort(SDL_RWops* rw);
 int File_readInt(SDL_RWops* rw);
 uint32_t File_readLong(SDL_RWops* rw);
+void File_readString(SDL_RWops* rw, char* dst, int dstSize, int len);
 
 #endif

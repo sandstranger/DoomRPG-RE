@@ -88,7 +88,8 @@ void Menu_setNotes(Menu_t* menu)
 	MenuItem_t* item;
 	char* tmpStr;
 	char* nbStr;
-	char text[32];
+	char text[sizeof(((MenuItem_t*)0)->textField)];	// (was 32: a notes line longer overflowed it)
+	int len;
 
 	menuSystem = menu->doomRpg->menuSystem;
 
@@ -99,15 +100,20 @@ void Menu_setNotes(Menu_t* menu)
 	MenuItem_Set(&menuSystem->items[menuSystem->numItems++], NULL, 0, 0);
 
 	
-	while (tmpStr = SDL_strchr(nbStr, 0x7c), tmpStr != NULL) {
+	while (tmpStr = SDL_strchr(nbStr, 0x7c), tmpStr != NULL && menuSystem->numItems < MAX_MENUITEMS) {
 
 		if(tmpStr == nbStr) {
 			item = &menuSystem->items[menuSystem->numItems++];
 			nbStr = (char*)0x0;
 		}
 		else {
-			strncpy(text, nbStr, (int)(tmpStr - (int)nbStr));
-			text[(int)(tmpStr -(int)nbStr)] = '\0';
+			// (the line's length: it took the pointers' low 32 bits, wrong on 64 bit, and it wasn't bounded)
+			len = (int)(tmpStr - nbStr);
+			if (len > (int)sizeof(text) - 1) {
+				len = (int)sizeof(text) - 1;
+			}
+			SDL_memcpy(text, nbStr, len);
+			text[len] = '\0';
 			item = &menuSystem->items[menuSystem->numItems++];
 			nbStr = text;
 		}
@@ -1968,11 +1974,11 @@ int Menu_select(Menu_t* menu, int menuId, int itemId)
 			else if (itemId == 5) { // New resolution Option
 				sdlVideo.resolutionIndex++;
 #ifndef ANDROID
-				if (sdlVideo.resolutionIndex >= (sizeof(sdlVideoModes) / sizeof(SDLVidModes_t))) {
+				if (sdlVideo.resolutionIndex < 0 || sdlVideo.resolutionIndex >= (int)(sizeof(sdlVideoModes) / sizeof(SDLVidModes_t))) {
 					sdlVideo.resolutionIndex = 0;
 				}
 #else
-                if (sdlVideo.resolutionIndex >= generatedVideoModsCount) {
+                if (sdlVideo.resolutionIndex < 0 || sdlVideo.resolutionIndex >= generatedVideoModsCount) {
                     sdlVideo.resolutionIndex = 0;
                 }
 #endif

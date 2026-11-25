@@ -744,9 +744,15 @@ void Game_loadConfig(Game_t* game)
 			intData = File_readInt(rw);
             sdlVideo.resolutionIndex = intData;
 
-            if (sdlVideo.resolutionIndex >=generatedVideoModsCount) {
+#ifdef ANDROID
+            if (sdlVideo.resolutionIndex < 0 || sdlVideo.resolutionIndex >= generatedVideoModsCount) {	// (a config's: negative indexed before the modes)
                 sdlVideo.resolutionIndex = GetDefaultScreenResolutionIndex();
             }
+#else
+            if (sdlVideo.resolutionIndex < 0 || sdlVideo.resolutionIndex >= (int)(sizeof(sdlVideoModes) / sizeof(SDLVidModes_t))) {
+                sdlVideo.resolutionIndex = 0;
+            }
+#endif
 
 			// New
 			intData = File_readInt(rw);
@@ -972,8 +978,7 @@ void Game_loadPlayerState(Game_t* game, char* fileName)
 	if (rw) {
 		printf("loadPlayerState storeName:%s\n", fileName);
 		len = File_readShort(rw);
-		SDL_memset(game->fileMapName, 0, sizeof(game->fileMapName));
-		SDL_RWread(rw, &game->fileMapName, len, 1);
+		File_readString(rw, game->fileMapName, sizeof(game->fileMapName), len);	// (its length is the file's)
 
 		data = File_readInt(rw);
 		game->doomRpg->doomCanvas->viewX = data;
@@ -1061,8 +1066,7 @@ void Game_loadPlayerState(Game_t* game, char* fileName)
 		}
 
 		len = File_readShort(rw);
-		SDL_memset(game->doomRpg->player->NotebookString, 0, sizeof(game->doomRpg->player->NotebookString));
-		SDL_RWread(rw, &game->doomRpg->player->NotebookString, len, 1);
+		File_readString(rw, game->doomRpg->player->NotebookString, sizeof(game->doomRpg->player->NotebookString), len);
 	}
 
 	SDL_RWclose(rw);
